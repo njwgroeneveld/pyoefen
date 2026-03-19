@@ -526,6 +526,14 @@
       <div class="feedback-box" id="mcFeedbackBox">
         <div class="feedback-title" id="mcFeedbackTitle"></div>
         <div class="feedback-text" id="mcFeedbackText"></div>
+        <div id="mcFollowupSection" style="display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <div class="answer-label">Stel een vervolgvraag</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <input type="text" id="mcFollowupInput" placeholder="Bijv. kun je een voorbeeld geven?" style="flex:1;font-family:var(--font-sans);" onkeydown="if(event.key==='Enter')askFollowup('mc')" />
+            <button onclick="askFollowup('mc')" style="padding:0 14px;font-size:13px;">Vraag →</button>
+          </div>
+          <div id="mcFollowupAnswer" style="display:none;margin-top:0.75rem;font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;"></div>
+        </div>
       </div>
 
       <div id="mcNextRow" style="margin-top:1rem;display:none;display:flex;gap:8px;flex-wrap:wrap;">
@@ -621,6 +629,14 @@
           <div class="feedback-model-label">Voorbeeldoplossing</div>
           <div class="code-block" id="modelAnswer"></div>
         </div>
+        <div id="followupSection" style="display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <div class="answer-label">Stel een vervolgvraag</div>
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <input type="text" id="followupInput" placeholder="Bijv. waarom is dit beter dan een for-loop?" style="flex:1;font-family:var(--font-sans);" onkeydown="if(event.key==='Enter')askFollowup('code')" />
+            <button onclick="askFollowup('code')" style="padding:0 14px;font-size:13px;">Vraag →</button>
+          </div>
+          <div id="followupAnswer" style="display:none;margin-top:0.75rem;font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;"></div>
+        </div>
       </div>
 
       <div id="nextRow" style="margin-top:1rem;display:none">
@@ -706,10 +722,9 @@ const TOPIC_LABELS = {
   kubernetes: 'Kubernetes',
   oop: 'OOP',
   basics: 'Python basics',
-  linux: 'Linux',
-  theorie_mc: 'Theorie MC'
+  linux: 'Linux'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', theorie_mc: '📚' };
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧' };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function doLogin() {
@@ -928,6 +943,9 @@ Reageer UITSLUITEND met geldig JSON:
     updateHeaderScore();
     saveProgress(selectedTopic, correct, result.score);
     document.getElementById('nextRow').style.display = 'block';
+    document.getElementById('followupSection').style.display = 'block';
+    document.getElementById('followupAnswer').style.display = 'none';
+    document.getElementById('followupInput').value = '';
 
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -1240,7 +1258,14 @@ Waarbij "correct" de index is (0=A, 1=B, 2=C, 3=D) van het juiste antwoord.`;
 
     const letters = ['A', 'B', 'C', 'D'];
     const container = document.getElementById('mcOptions');
-    currentMcQuestion.opties.forEach((opt, i) => {
+
+    // Shuffle opties zodat het juiste antwoord niet altijd A is
+    const origCorrectText = currentMcQuestion.opties[currentMcQuestion.correct];
+    const shuffled = [...currentMcQuestion.opties].sort(() => Math.random() - 0.5);
+    currentMcQuestion.correct = shuffled.indexOf(origCorrectText);
+    currentMcQuestion.opties = shuffled;
+
+    shuffled.forEach((opt, i) => {
       const div = document.createElement('div');
       div.className = 'mc-option';
       div.innerHTML = `<div class="mc-letter">${letters[i]}</div><div>${opt}</div>`;
@@ -1276,9 +1301,12 @@ function selectMcAnswer(idx) {
     score: isCorrect ? 100 : 0
   });
 
-  saveProgress('theorie_mc', isCorrect, isCorrect ? 100 : 0);
+  saveProgress(selectedTopic, isCorrect, isCorrect ? 100 : 0);
   updateHeaderScore();
   document.getElementById('mcNextRow').style.display = 'block';
+  document.getElementById('mcFollowupSection').style.display = 'block';
+  document.getElementById('mcFollowupAnswer').style.display = 'none';
+  document.getElementById('mcFollowupInput').value = '';
 }
 
 function mcNextQuestion() {
@@ -1428,6 +1456,41 @@ function clearData() {
   localStorage.removeItem('sre_progress');
   localStorage.removeItem('sre_last_session');
   renderDashboard();
+}
+
+// ─── FOLLOW-UP ────────────────────────────────────────────────────────────────
+async function askFollowup(mode) {
+  const inputId = mode === 'mc' ? 'mcFollowupInput' : 'followupInput';
+  const answerId = mode === 'mc' ? 'mcFollowupAnswer' : 'followupAnswer';
+  const question = document.getElementById(inputId).value.trim();
+  if (!question) return;
+
+  const answerEl = document.getElementById(answerId);
+  answerEl.style.display = 'block';
+  answerEl.textContent = 'Laden...';
+
+  let context = '';
+  if (mode === 'mc' && currentMcQuestion) {
+    context = `Vraag: ${currentMcQuestion.vraag}\nJuiste antwoord: ${currentMcQuestion.opties[currentMcQuestion.correct]}\nUitleg: ${currentMcQuestion.uitleg}`;
+  } else if (mode === 'code' && currentQuestion) {
+    const answer = document.getElementById('answerInput').value.trim();
+    context = `Vraag: ${currentQuestion.vraag}\nAntwoord kandidaat: ${answer}\nModelantwoord: ${currentQuestion.model_antwoord}`;
+  }
+
+  const prompt = `Je bent een Python oefendocent voor een Trading Reliability Engineer rol.
+Context van de oefenvraag:
+${context}
+
+Vervolgvraag van de kandidaat: ${question}
+
+Geef een duidelijk en beknopt antwoord in het Nederlands (max 4 zinnen).`;
+
+  try {
+    const res = await callClaude(prompt, 300);
+    answerEl.textContent = res;
+  } catch(e) {
+    answerEl.textContent = 'Fout bij laden van antwoord.';
+  }
 }
 
 // ─── CLAUDE API ──────────────────────────────────────────────────────────────
