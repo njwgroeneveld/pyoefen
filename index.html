@@ -765,7 +765,7 @@ function selectMod(el, val) {
 
 // ─── SESSION ─────────────────────────────────────────────────────────────────
 async function startSession() {
-  if (!apiKey) { alert('Vul eerst een API key in.'); return; }
+  if (!appPassword) { doLogout(); return; }
   if (selectedMod === 'mc') {
     mcSession = { current: 0, results: [] };
     document.getElementById('headerScore').style.display = 'flex';
