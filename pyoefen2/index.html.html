@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Python Oefenapp</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2128;
+    --border: #2a2d35;
+    --border2: #3a3d47;
+    --text: #e8eaf0;
+    --muted: #7a7f8e;
+    --accent: #4f9eff;
+    --accent-dim: #1a3a5c;
+    --success: #3ecf8e;
+    --success-dim: #0d3326;
+    --danger: #f56565;
+    --danger-dim: #3d1515;
+    --warn: #f6ad55;
+    --warn-dim: #3d2a0d;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+
+  .session-info { display: flex; gap: 1.5rem; align-items: center; }
+  .session-stat { font-size: 13px; color: var(--muted); }
+  .session-stat strong { color: var(--text); font-weight: 600; }
+
+  main { flex: 1; max-width: 780px; width: 100%; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* SETUP SCREEN */
+  .setup-hero { margin-bottom: 2.5rem; }
+  .setup-hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.5rem; }
+  .setup-hero p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+
+  .api-section { margin-bottom: 2rem; }
+  .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .api-row { display: flex; gap: 8px; }
+  input[type="password"], input[type="text"], textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="password"]:focus, input[type="text"]:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  .api-input { flex: 1; }
+  .api-save-btn { padding: 0 16px; font-size: 13px; }
+
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+
+  .config-section h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+
+  .option-list { display: flex; flex-direction: column; gap: 6px; }
+  .option-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .option-item:hover { border-color: var(--border2); background: var(--surface); }
+  .option-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option-item input[type="checkbox"], .option-item input[type="radio"] { display: none; }
+  .option-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .option-item.selected .option-dot { border-color: var(--accent); background: var(--accent); }
+  .option-check {
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 1.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .option-item.selected .option-check { border-color: var(--accent); background: var(--accent); }
+  .option-check::after { content: '✓'; font-size: 10px; color: white; display: none; }
+  .option-item.selected .option-check::after { display: block; }
+  .option-label { font-size: 14px; }
+  .option-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* BUTTONS */
+  button {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    color: var(--text);
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  button:hover { background: var(--surface); border-color: var(--border2); }
+  button:active { transform: scale(0.98); }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { background: #6aaeff; border-color: #6aaeff; }
+  button.primary:disabled { background: var(--surface2); border-color: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+  button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+  button.ghost:hover { color: var(--text); background: var(--surface); }
+  button.danger-btn { background: var(--danger-dim); border-color: var(--danger); color: var(--danger); }
+
+  .start-row { display: flex; align-items: center; gap: 1rem; }
+  .start-notice { font-size: 13px; color: var(--muted); }
+
+  /* QUESTION SCREEN */
+  .q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .q-meta { display: flex; gap: 8px; align-items: center; }
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: 99px; letter-spacing: 0.04em;
+  }
+  .badge-topic { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .badge-easy { background: var(--success-dim); color: var(--success); }
+  .badge-medium { background: var(--warn-dim); color: var(--warn); }
+  .badge-hard { background: var(--danger-dim); color: var(--danger); }
+
+  .progress-bar { height: 3px; background: var(--border); border-radius: 99px; margin-bottom: 1.5rem; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.3s; }
+
+  .question-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+  .question-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .question-text { font-size: 16px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  .answer-section { margin-bottom: 1rem; }
+  .answer-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  textarea.code-answer {
+    width: 100%;
+    min-height: 160px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    resize: vertical;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  textarea.code-answer:focus { border-color: var(--accent); }
+
+  .action-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* FEEDBACK */
+  .feedback-box {
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.correct { background: var(--success-dim); border-color: var(--success); }
+  .feedback-box.incorrect { background: var(--danger-dim); border-color: var(--danger); }
+  .feedback-box.loading { background: var(--surface); }
+  .feedback-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .feedback-box.correct .feedback-title { color: var(--success); }
+  .feedback-box.incorrect .feedback-title { color: var(--danger); }
+  .feedback-text { font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
+  .feedback-model { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .feedback-model-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+
+  /* RESULTS SCREEN */
+  .results-hero { text-align: center; padding: 2rem 0; }
+  .score-ring { margin: 0 auto 1rem; width: 100px; height: 100px; }
+  .results-hero h2 { font-size: 24px; font-weight: 700; margin-bottom: 0.5rem; }
+  .results-hero p { color: var(--muted); }
+
+  .topic-progress { margin: 2rem 0; }
+  .topic-progress h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .topic-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .topic-name { font-size: 14px; width: 180px; flex-shrink: 0; }
+  .topic-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 99px; }
+  .topic-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.5s ease; }
+  .topic-pct { font-size: 13px; color: var(--muted); width: 36px; text-align: right; }
+
+  .session-log { margin: 2rem 0; }
+  .session-log h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .log-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+  }
+  .log-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+  .log-icon.ok { background: var(--success-dim); color: var(--success); }
+  .log-icon.fail { background: var(--danger-dim); color: var(--danger); }
+  .log-icon.skip { background: var(--surface2); color: var(--muted); }
+  .log-q { font-size: 13px; line-height: 1.5; color: var(--text); }
+  .log-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  .results-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+
+  /* DASHBOARD SCREEN */
+  .dash-header { margin-bottom: 2rem; }
+  .dash-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
+  .dash-header p { color: var(--muted); font-size: 14px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .dash-topics { margin-bottom: 2rem; }
+  .dash-topics h3 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .topic-icon { font-size: 18px; width: 36px; text-align: center; }
+  .topic-info { flex: 1; }
+  .topic-info-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .topic-info-bar-bg { height: 4px; background: var(--border); border-radius: 99px; }
+  .topic-info-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); }
+  .topic-info-stats { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .topic-pct-big { font-size: 18px; font-weight: 700; color: var(--accent); }
+
+  /* UTIL */
+  .divider { height: 1px; background: var(--border); margin: 2rem 0; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty-state p { margin-top: 0.5rem; font-size: 14px; }
+
+  .hint-box {
+    background: var(--warn-dim); border: 1px solid var(--warn);
+    border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+    font-size: 13px; color: var(--warn); line-height: 1.6;
+    margin-bottom: 1rem; display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .hint-box.show { display: block; }
+
+  nav.bottom-nav {
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: center; gap: 4px;
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    position: sticky; bottom: 0;
+  }
+  .nav-tab { font-size: 13px; padding: 7px 18px; border-radius: 99px; background: transparent; border: none; color: var(--muted); }
+  .nav-tab:hover { color: var(--text); background: var(--surface); border: none; }
+  .nav-tab.active { color: var(--accent); background: var(--accent-dim); border: none; }
+
+  .mc-option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 14px; line-height: 1.5;
+  }
+  .mc-option:hover { border-color: var(--border2); background: var(--surface); }
+  .mc-option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .mc-option.correct { border-color: var(--success); background: var(--success-dim); color: var(--success); pointer-events: none; }
+  .mc-option.wrong { border-color: var(--danger); background: var(--danger-dim); color: var(--danger); pointer-events: none; }
+  .mc-option.disabled { pointer-events: none; opacity: 0.5; }
+  .mc-letter { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">py<span>oefen</span></div>
+    <div class="session-info">
+      <span class="session-stat" id="headerScore" style="display:none">Score: <strong id="headerScoreVal">0/0</strong></span>
+      <button class="ghost" style="font-size:13px;padding:6px 12px" onclick="showScreen('dashboard')">Dashboard</button>
+      <button class="ghost" style="font-size:13px;padding:6px 12px;color:var(--muted)" onclick="doLogout()">Uitloggen</button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- LOGIN SCREEN -->
+    <div class="screen active" id="screen-login">
+      <div style="max-width:360px;margin:4rem auto;">
+        <div style="text-align:center;margin-bottom:2rem;">
+          <div class="logo" style="font-size:24px;margin-bottom:0.5rem;">py<span>oefen</span></div>
+          <p style="color:var(--muted);font-size:14px;">Voer het wachtwoord in om verder te gaan.</p>
+        </div>
+        <div class="question-box">
+          <div class="field-label">Wachtwoord</div>
+          <input type="password" id="loginInput" style="width:100%;margin-bottom:1rem;" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+          <button class="primary" style="width:100%;" onclick="doLogin()">Inloggen</button>
+          <div id="loginError" style="font-size:13px;color:var(--danger);margin-top:8px;display:none;">Ongeldig wachtwoord, probeer opnieuw.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP SCREEN -->
+    <div class="screen" id="screen-setup">
+      <div class="setup-hero">
+        <h1>Python oefenen<br/>op je eigen tempo</h1>
+        <p>Genereer live vragen over regex, pandas, scripting en Kubernetes — beoordeeld door Claude.</p>
+      </div>
+
+      <div class="config-grid">
+        <div class="config-section">
+          <h3>Onderwerp</h3>
+          <div class="option-list" id="topicList">
+            <label class="option-item selected" onclick="selectTopic(this,'regex')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Regex</div>
+                <div class="option-sub">re module, patronen, groepen</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'pandas')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Pandas & data-analyse</div>
+                <div class="option-sub">groupby, query, merge, filtering</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'sre')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Python scripting</div>
+                <div class="option-sub">subprocess, retry, logging</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'kubernetes')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Kubernetes</div>
+                <div class="option-sub">kubectl, pods, deployments</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'oop')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">OOP</div>
+                <div class="option-sub">klassen, inheritance, decorators</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'basics')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Python basics</div>
+                <div class="option-sub">comprehensions, JSON, exceptions</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'linux')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Linux</div>
+                <div class="option-sub">processes, netwerk, logs, tools</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h3>Moeilijkheid</h3>
+          <div class="option-list" id="diffList">
+            <label class="option-item selected" onclick="selectDiff(this,'makkelijk')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Makkelijk</div>
+                <div class="option-sub">Basisconcepten, korte functies</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectDiff(this,'gemiddeld')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Gemiddeld</div>
+                <div class="option-sub">Meerdere stappen, edge cases</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectDiff(this,'moeilijk')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Moeilijk</div>
+                <div class="option-sub">Complexe scenario's, combinaties</div>
+              </div>
+            </label>
+          </div>
+
+          <div style="margin-top:1.5rem;">
+            <h3>Aantal vragen</h3>
+            <div class="option-list" id="countList">
+              <label class="option-item selected" onclick="selectCount(this,1)">
+                <div class="option-dot"></div>
+                <div class="option-label">1 vraag</div>
+              </label>
+              <label class="option-item" onclick="selectCount(this,2)">
+                <div class="option-dot"></div>
+                <div class="option-label">2 vragen</div>
+              </label>
+              <label class="option-item" onclick="selectCount(this,3)">
+                <div class="option-dot"></div>
+                <div class="option-label">3 vragen</div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.5rem;">
+        <div class="config-section">
+          <h3>Modus</h3>
+          <div class="option-list" id="modList" style="flex-direction:row;gap:8px;">
+            <label class="option-item selected" onclick="selectMod(this,'code')" style="flex:1;">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Code schrijven</div>
+                <div class="option-sub">Python oefenen</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectMod(this,'mc')" style="flex:1;">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Theorie MC</div>
+                <div class="option-sub">Conceptvragen</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="start-row">
+        <button class="primary" id="startBtn" onclick="startSession()">Sessie starten</button>
+      </div>
+    </div>
+
+    <!-- MC QUESTION SCREEN -->
+    <div class="screen" id="screen-mc">
+      <div class="q-header">
+        <div class="q-meta">
+          <span class="badge badge-topic" id="mcTopic">Theorie</span>
+          <span class="badge" id="mcDiff">Makkelijk</span>
+          <span class="badge" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted)">MC</span>
+        </div>
+        <span style="font-size:13px;color:var(--muted)" id="mcCounter">Vraag 1/3</span>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="mcProgressFill" style="width:0%"></div>
+      </div>
+
+      <div class="question-box">
+        <div class="question-title">Vraag</div>
+        <div class="question-text" id="mcQuestionText">Laden...</div>
+        <div class="code-block" id="mcCodeBlock" style="display:none"></div>
+      </div>
+
+      <div id="mcOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;"></div>
+
+      <div class="feedback-box" id="mcFeedbackBox">
+        <div class="feedback-title" id="mcFeedbackTitle"></div>
+        <div class="feedback-text" id="mcFeedbackText"></div>
+      </div>
+
+      <div id="mcNextRow" style="margin-top:1rem;display:none;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="primary" onclick="mcNextQuestion()">Volgende vraag →</button>
+        <button id="mcCodePracticeBtn" onclick="mcStartCodePractice()" style="background:var(--surface2);border-color:var(--accent);color:var(--accent);">Oefen dit in code →</button>
+      </div>
+    </div>
+
+    <!-- MC CODE PRACTICE SCREEN -->
+    <div class="screen" id="screen-mc-code">
+      <div class="q-header">
+        <div class="q-meta">
+          <span class="badge badge-topic" id="mcCodeTopic">Theorie</span>
+          <span class="badge" id="mcCodeDiff">Makkelijk</span>
+          <span class="badge" style="background:var(--surface2);border:1px solid var(--border);color:var(--accent);">verdieping</span>
+        </div>
+        <button class="ghost" style="font-size:13px;padding:4px 10px;" onclick="mcBackToSession()">← Terug</button>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:13px;color:var(--muted);line-height:1.5;">
+        💡 Gebaseerd op de MC vraag over: <span id="mcCodeOnderwerp" style="color:var(--text);font-weight:500;"></span>
+      </div>
+
+      <div class="question-box">
+        <div class="question-title">Opdracht</div>
+        <div class="question-text" id="mcCodeQuestionText">Laden...</div>
+        <div class="code-block" id="mcCodeStarter" style="display:none"></div>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-label">Jouw antwoord</div>
+        <textarea class="code-answer" id="mcCodeAnswerInput" placeholder="Schrijf hier je Python code..."></textarea>
+      </div>
+
+      <div class="hint-box" id="mcCodeHintBox"></div>
+
+      <div class="action-row">
+        <button class="primary" id="mcCodeSubmitBtn" onclick="mcCodeSubmitAnswer()">Controleer antwoord</button>
+        <button onclick="mcCodeRequestHint()" id="mcCodeHintBtn">Hint</button>
+      </div>
+
+      <div class="feedback-box" id="mcCodeFeedbackBox">
+        <div class="feedback-title" id="mcCodeFeedbackTitle"></div>
+        <div class="feedback-text" id="mcCodeFeedbackText"></div>
+        <div class="feedback-model" id="mcCodeFeedbackModel" style="display:none">
+          <div class="feedback-model-label">Voorbeeldoplossing</div>
+          <div class="code-block" id="mcCodeModelAnswer"></div>
+        </div>
+      </div>
+
+      <div id="mcCodeNextRow" style="margin-top:1rem;display:none;">
+        <button class="primary" onclick="mcBackToSession()">Terug naar sessie →</button>
+      </div>
+    </div>
+
+    <!-- QUESTION SCREEN -->
+    <div class="screen" id="screen-question">
+      <div class="q-header">
+        <div class="q-meta">
+          <span class="badge badge-topic" id="qTopic">Regex</span>
+          <span class="badge" id="qDiff">Makkelijk</span>
+        </div>
+        <span style="font-size:13px;color:var(--muted)" id="qCounter">Vraag 1/3</span>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+
+      <div class="question-box">
+        <div class="question-title">Opdracht</div>
+        <div class="question-text" id="questionText">Laden...</div>
+        <div class="code-block" id="codeStarter" style="display:none"></div>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-label">Jouw antwoord</div>
+        <textarea class="code-answer" id="answerInput" placeholder="Schrijf hier je Python code..."></textarea>
+      </div>
+
+      <div class="hint-box" id="hintBox"></div>
+
+      <div class="action-row">
+        <button class="primary" id="submitBtn" onclick="submitAnswer()">Controleer antwoord</button>
+        <button onclick="requestHint()" id="hintBtn">Hint</button>
+        <button class="ghost" onclick="skipQuestion()">Overslaan</button>
+      </div>
+
+      <div class="feedback-box" id="feedbackBox">
+        <div class="feedback-title" id="feedbackTitle"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+        <div class="feedback-model" id="feedbackModel" style="display:none">
+          <div class="feedback-model-label">Voorbeeldoplossing</div>
+          <div class="code-block" id="modelAnswer"></div>
+        </div>
+      </div>
+
+      <div id="nextRow" style="margin-top:1rem;display:none">
+        <button class="primary" onclick="nextQuestion()">Volgende vraag →</button>
+      </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="screen" id="screen-results">
+      <div class="results-hero">
+        <svg class="score-ring" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#2a2d35" stroke-width="8"/>
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#4f9eff" stroke-width="8"
+            stroke-dasharray="264" id="scoreArc" stroke-dashoffset="264"
+            stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 0.8s ease"/>
+          <text x="50" y="54" text-anchor="middle" fill="#e8eaf0" font-family="Syne,sans-serif" font-size="18" font-weight="700" id="scoreText">0/0</text>
+        </svg>
+        <h2 id="resultsTitle">Sessie afgerond!</h2>
+        <p id="resultsSubtitle">Hier is je samenvatting</p>
+      </div>
+
+      <div class="topic-progress" id="topicProgress"></div>
+
+      <div class="session-log">
+        <h3>Vragen deze sessie</h3>
+        <div id="logList"></div>
+      </div>
+
+      <div class="results-actions">
+        <button class="primary" onclick="showScreen('setup')">Nieuwe sessie</button>
+        <button onclick="showScreen('dashboard')">Bekijk voortgang</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div class="screen" id="screen-dashboard">
+      <div class="dash-header">
+        <h2>Voortgang</h2>
+        <p>Alle sessies gecombineerd</p>
+      </div>
+
+      <div class="stats-grid" id="dashStats"></div>
+
+      <div class="dash-topics">
+        <h3>Per onderwerp</h3>
+        <div id="dashTopics"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;gap:8px">
+        <button class="primary" onclick="showScreen('setup')">Nieuwe sessie starten</button>
+        <button class="danger-btn" onclick="clearData()">Voortgang wissen</button>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-tab active" onclick="showScreen('setup')" id="tab-setup">Oefenen</button>
+    <button class="nav-tab" onclick="showScreen('dashboard')" id="tab-dashboard">Dashboard</button>
+  </nav>
+
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let appPassword = sessionStorage.getItem('app_password') || '';
+let selectedTopic = 'regex';
+let selectedDiff = 'makkelijk';
+let selectedCount = 1;
+let selectedMod = 'code';
+
+let session = { questions: [], current: 0, results: [] };
+let currentQuestion = null;
+let hintUsed = false;
+let mcSession = { current: 0, results: [] };
+let currentMcQuestion = null;
+
+const TOPIC_LABELS = {
+  regex: 'Regex',
+  pandas: 'Pandas & data-analyse',
+  sre: 'Python scripting',
+  kubernetes: 'Kubernetes',
+  oop: 'OOP',
+  basics: 'Python basics',
+  linux: 'Linux',
+  theorie_mc: 'Theorie MC'
+};
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', theorie_mc: '📚' };
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function doLogin() {
+  const val = document.getElementById('loginInput').value.trim();
+  if (!val) return;
+  appPassword = val;
+  sessionStorage.setItem('app_password', val);
+  document.getElementById('loginError').style.display = 'none';
+  showScreen('setup');
+}
+
+function doLogout() {
+  sessionStorage.removeItem('app_password');
+  appPassword = '';
+  showScreen('login');
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+if (appPassword) showScreen('setup');
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+}
+
+// ─── SELECTION HELPERS ───────────────────────────────────────────────────────
+function selectTopic(el, val) {
+  document.querySelectorAll('#topicList .option-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTopic = val;
+}
+function selectDiff(el, val) {
+  document.querySelectorAll('#diffList .option-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDiff = val;
+}
+function selectCount(el, val) {
+  document.querySelectorAll('#countList .option-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCount = val;
+}
+
+function selectMod(el, val) {
+  document.querySelectorAll('#modList .option-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMod = val;
+}
+
+// ─── SESSION ─────────────────────────────────────────────────────────────────
+async function startSession() {
+  if (!apiKey) { alert('Vul eerst een API key in.'); return; }
+  if (selectedMod === 'mc') {
+    mcSession = { current: 0, results: [] };
+    document.getElementById('headerScore').style.display = 'flex';
+    updateHeaderScore();
+    await loadMcQuestion();
+    showScreen('mc');
+  } else {
+    session = { questions: [], current: 0, results: [] };
+    document.getElementById('headerScore').style.display = 'flex';
+    updateHeaderScore();
+    await loadNextQuestion();
+    showScreen('question');
+  }
+}
+
+async function loadNextQuestion() {
+  const idx = session.current;
+  document.getElementById('qCounter').textContent = `Vraag ${idx + 1}/${selectedCount}`;
+  document.getElementById('progressFill').style.width = `${(idx / selectedCount) * 100}%`;
+  document.getElementById('qTopic').textContent = TOPIC_LABELS[selectedTopic];
+  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
+  const qDiff = document.getElementById('qDiff');
+  qDiff.className = 'badge ' + diffClass;
+  qDiff.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
+
+  document.getElementById('questionText').textContent = 'Vraag genereren...';
+  document.getElementById('codeStarter').style.display = 'none';
+  document.getElementById('answerInput').value = '';
+  document.getElementById('feedbackBox').className = 'feedback-box';
+  document.getElementById('hintBox').className = 'hint-box';
+  document.getElementById('nextRow').style.display = 'none';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('hintBtn').disabled = false;
+  hintUsed = false;
+
+  const topicContexts = {
+    regex: 'Python re module: re.match, re.search, re.findall, re.sub, named groups, lookaheads. Context: parsen van trading logs, order ID patronen, exchange feed berichten, trade timestamps, service namen, foutmeldingen uit matching engines.',
+    pandas: 'Python pandas: DataFrames, Series, groupby, merge, pivot, resample, str accessor, apply, en VOORAL query() voor filteren. Context: latency analyse van trade uitvoering, order flow data verwerken, performance vergelijking tussen exchange sessies, detecteren van anomalieën in handelsdata.',
+    sre: 'Python scripting: subprocess, os, sys, logging, retry logic, exponential backoff, file I/O, argparse, threading basics. Context: reliability scripts voor trading systemen, health checks op exchange verbindingen, alerting tools, automatisch herstarten van falende services, release scripts.',
+    kubernetes: 'Kubernetes concepten en Python kubernetes-client: pods, deployments, services, namespaces, resource requests/limits, kubectl equivalenten in Python. Context: beheren van trading applicaties zoals order routers en exchange connectors in een k8s cluster, bewaken van pod stabiliteit tijdens market hours.',
+    oop: 'Python OOP: klassen, __init__, instance/class/static methods, inheritance, super(), abstracte klassen, dataclasses, properties, dunder methods (__str__, __repr__, __eq__), decorators (@property, @classmethod). Context: modelleren van trading componenten zoals orders, positions, exchange connecties en monitoring tools.',
+    basics: 'Python basisvaardigheden: list comprehensions, dict comprehensions, JSON laden/schrijven (json.load, json.dumps), error handling (try/except/finally), generators, lambda & map/filter, type hints, context managers (with), f-strings, *args/**kwargs, unpacking. Context: verwerken van trade berichten, configuratie bestanden en API responses in een trading omgeving.',
+    linux: 'Linux systeembeheer via Python subprocess: process monitoring (ps, top, htop), log analyse (grep, awk, sed), netwerk troubleshooting (netstat, ss, tcpdump), service management (systemctl, journalctl), resource limiting (ulimit, cgroups), file permissions, debugging tools (strace, lsof), disk en memory analyse (df, free, iostat). Schrijf Python scripts die deze tools aanroepen en de output parsen. Context: troubleshooting en monitoring van trading systemen op Linux servers.'
+  };
+
+  const topicVraagtypen = {
+    regex: ['IP-adres validatie', 'timestamp parsing', 'log level extractie', 'bestandsnaam matching', 'e-mailadres validatie', 'URL parsing', 'ID patroon herkenning', 'named groups', 'lookahead/lookbehind', 'substitutie met re.sub'],
+    pandas: ['groupby + aggregatie', 'query() filtering', 'merge/join van DataFrames', 'resample op tijd', 'str accessor bewerkingen', 'pivot table', 'apply met lambda', 'missing values afhandelen', 'multi-column sortering', 'value_counts analyse'],
+    sre: ['retry met exponential backoff', 'subprocess aanroepen', 'logfile parsen', 'argparse CLI tool', 'file I/O met context manager', 'threading basics', 'environment variables', 'JSON config laden', 'foutafhandeling met exceptions', 'decorator schrijven'],
+    kubernetes: ['pods in namespace opvragen', 'resource usage filteren', 'deployment schalen', 'pod logs ophalen', 'service endpoints', 'namespace aanmaken', 'label selector queries', 'pod status controleren', 'configmap uitlezen', 'events opvragen'],
+    oop: ['basis klasse met __init__', 'inheritance en super()', 'abstracte basisklasse', 'dataclass aanmaken', '@property getter/setter', '@classmethod factory method', '@staticmethod utility', 'dunder __str__ en __repr__', 'meervoudige inheritance', 'mixin patroon'],
+    basics: ['list comprehension', 'dict comprehension', 'JSON lezen en schrijven', 'try/except/finally foutafhandeling', 'generator functie', 'lambda met map en filter', 'type hints toevoegen', 'context manager met with', 'f-string formatting', '*args en **kwargs gebruiken'],
+    linux: ['processen monitoren met ps/top via subprocess', 'log filteren met grep via Python', 'output van awk parsen', 'netwerk verbindingen opvragen met ss/netstat', 'service status controleren via systemctl', 'journalctl logs uitlezen', 'file permissions aanpassen via Python', 'disk gebruik analyseren met df', 'memory gebruik uitlezen met free', 'lsof gebruiken om open bestanden te vinden']
+  };
+
+  const gebruikteTypen = session.questions.map(q => q.vraagtype || '').filter(Boolean);
+  const beschikbaar = topicVraagtypen[selectedTopic].filter(t => !gebruikteTypen.includes(t));
+  const vraagtype = beschikbaar.length > 0
+    ? beschikbaar[Math.floor(Math.random() * beschikbaar.length)]
+    : topicVraagtypen[selectedTopic][Math.floor(Math.random() * topicVraagtypen[selectedTopic].length)];
+
+  const prompt = `Je bent een Python oefendocent die een kandidaat voorbereidt op een Trading Reliability Engineer rol.
+Genereer één Python codeer-vraag op niveau: ${selectedDiff}.
+Onderwerp: ${topicContexts[selectedTopic]}
+Vraagtype (verplicht): ${vraagtype}
+
+De kandidaat moet daadwerkelijk Python code schrijven als antwoord.
+Zorg dat de vraag duidelijk over "${vraagtype}" gaat en niet over iets anders.
+Gebruik waar mogelijk een scenario dat past bij trading systemen, exchange connecties, latency of reliability.
+${gebruikteTypen.length > 0 ? `Al behandelde vraagtypen (NIET herhalen): ${gebruikteTypen.join(', ')}.` : ''}
+
+De kandidaat moet daadwerkelijk Python code schrijven als antwoord.
+
+Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
+{
+  "vraag": "duidelijke opdracht in het Nederlands, max 3 zinnen, beschrijf precies wat de functie/code moet doen",
+  "vraagtype": "${vraagtype}",
+  "starter_code": "optionele startcode die de kandidaat moet aanvullen, leeg string als niet van toepassing",
+  "hints": ["hint1 in het Nederlands", "hint2 in het Nederlands"],
+  "model_antwoord": "de correcte Python code oplossing",
+  "beoordelingscriteria": ["criterium 1", "criterium 2", "criterium 3"]
+}`;
+
+  try {
+    const res = await callClaude(prompt, 800);
+    const clean = res.replace(/```json|```/g, '').trim();
+    currentQuestion = JSON.parse(clean);
+    session.questions.push(currentQuestion);
+
+    document.getElementById('questionText').textContent = currentQuestion.vraag;
+    if (currentQuestion.starter_code && currentQuestion.starter_code.trim()) {
+      document.getElementById('codeStarter').textContent = currentQuestion.starter_code;
+      document.getElementById('codeStarter').style.display = 'block';
+      document.getElementById('answerInput').value = currentQuestion.starter_code;
+    }
+  } catch(e) {
+    document.getElementById('questionText').textContent = 'Fout bij laden van vraag. Controleer je API key en probeer opnieuw.';
+  }
+}
+
+async function submitAnswer() {
+  const answer = document.getElementById('answerInput').value.trim();
+  if (!answer) { alert('Schrijf eerst een antwoord.'); return; }
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box loading show';
+  document.getElementById('feedbackTitle').textContent = '';
+  document.getElementById('feedbackText').innerHTML = '<span class="spinner"></span> Beoordelen...';
+  document.getElementById('feedbackModel').style.display = 'none';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('hintBtn').disabled = true;
+
+  const criteria = currentQuestion.beoordelingscriteria.join('\n- ');
+  const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
+
+Vraag: ${currentQuestion.vraag}
+
+Beoordelingscriteria:
+- ${criteria}
+
+Antwoord van kandidaat:
+${answer}
+
+Model antwoord (intern, gebruik als referentie):
+${currentQuestion.model_antwoord}
+
+Reageer UITSLUITEND met geldig JSON:
+{
+  "correct": true of false,
+  "score": getal 0-100,
+  "feedback": "2-4 zinnen feedback in het Nederlands: wat ging goed, wat kan beter",
+  "toon_model": true of false (toon modelantwoord alleen als score < 70)
+}`;
+
+  try {
+    const res = await callClaude(prompt, 400);
+    const clean = res.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    const correct = result.correct || result.score >= 70;
+    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
+    document.getElementById('feedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    document.getElementById('feedbackText').textContent = result.feedback;
+
+    if (result.toon_model || !correct) {
+      document.getElementById('feedbackModel').style.display = 'block';
+      document.getElementById('modelAnswer').textContent = currentQuestion.model_antwoord;
+    }
+
+    session.results.push({
+      vraag: currentQuestion.vraag,
+      topic: selectedTopic,
+      diff: selectedDiff,
+      correct,
+      score: result.score,
+      hintUsed,
+      antwoord: answer
+    });
+
+    updateHeaderScore();
+    saveProgress(selectedTopic, correct, result.score);
+    document.getElementById('nextRow').style.display = 'block';
+
+  } catch(e) {
+    fb.className = 'feedback-box show incorrect';
+    document.getElementById('feedbackTitle').textContent = 'Fout bij beoordelen';
+    document.getElementById('feedbackText').textContent = 'Controleer je API key en probeer opnieuw.';
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+async function requestHint() {
+  if (!currentQuestion || !currentQuestion.hints.length) return;
+  hintUsed = true;
+  document.getElementById('hintBtn').disabled = true;
+  const hintBox = document.getElementById('hintBox');
+  hintBox.className = 'hint-box show';
+  hintBox.textContent = '💡 ' + currentQuestion.hints[0];
+}
+
+function skipQuestion() {
+  session.results.push({
+    vraag: currentQuestion ? currentQuestion.vraag : '(niet geladen)',
+    topic: selectedTopic, diff: selectedDiff,
+    correct: false, score: 0, hintUsed: false, skipped: true
+  });
+  nextQuestion();
+}
+
+function nextQuestion() {
+  session.current++;
+  if (session.current >= selectedCount) {
+    showResults();
+  } else {
+    loadNextQuestion();
+  }
+}
+
+function mcBackToSession() {
+  if (mcSession.current >= selectedCount) {
+    showMcResults();
+  } else {
+    showScreen('mc');
+  }
+}
+
+async function mcStartCodePractice() {
+  if (!currentMcQuestion) return;
+  const onderwerp = currentMcQuestion.onderwerp;
+
+  document.getElementById('mcCodeTopic').textContent = onderwerp;
+  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
+  const el = document.getElementById('mcCodeDiff');
+  el.className = 'badge ' + diffClass;
+  el.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
+  document.getElementById('mcCodeOnderwerp').textContent = onderwerp;
+  document.getElementById('mcCodeQuestionText').textContent = 'Code vraag genereren...';
+  document.getElementById('mcCodeStarter').style.display = 'none';
+  document.getElementById('mcCodeAnswerInput').value = '';
+  document.getElementById('mcCodeFeedbackBox').className = 'feedback-box';
+  document.getElementById('mcCodeHintBox').className = 'hint-box';
+  document.getElementById('mcCodeNextRow').style.display = 'none';
+  document.getElementById('mcCodeSubmitBtn').disabled = false;
+  document.getElementById('mcCodeHintBtn').disabled = false;
+
+  showScreen('mc-code');
+
+  const prompt = `Je bent een Python oefendocent voor een Trading Reliability Engineer rol.
+De kandidaat heeft net een MC vraag beantwoord over: "${onderwerp}".
+MC vraag was: "${currentMcQuestion.vraag}"
+
+Genereer nu een aansluitende Python codeer-opdracht op niveau ${selectedDiff} die dit concept in de praktijk brengt.
+De opdracht moet direct aansluiten op het onderwerp en relevant zijn voor een trading/reliability omgeving.
+
+Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
+{
+  "vraag": "duidelijke Python codeer-opdracht in het Nederlands, max 3 zinnen",
+  "starter_code": "optionele startcode, lege string als niet van toepassing",
+  "hints": ["hint1 in het Nederlands", "hint2 in het Nederlands"],
+  "model_antwoord": "de correcte Python code oplossing",
+  "beoordelingscriteria": ["criterium 1", "criterium 2", "criterium 3"]
+}`;
+
+  try {
+    const res = await callClaude(prompt, 800);
+    const clean = res.replace(/```json|```/g, '').trim();
+    const q = JSON.parse(clean);
+    currentMcQuestion._codeVraag = q;
+
+    document.getElementById('mcCodeQuestionText').textContent = q.vraag;
+    if (q.starter_code && q.starter_code.trim()) {
+      document.getElementById('mcCodeStarter').textContent = q.starter_code;
+      document.getElementById('mcCodeStarter').style.display = 'block';
+      document.getElementById('mcCodeAnswerInput').value = q.starter_code;
+    }
+  } catch(e) {
+    document.getElementById('mcCodeQuestionText').textContent = 'Fout bij laden. Controleer je API key.';
+  }
+}
+
+async function mcCodeSubmitAnswer() {
+  const answer = document.getElementById('mcCodeAnswerInput').value.trim();
+  if (!answer) { alert('Schrijf eerst een antwoord.'); return; }
+  const q = currentMcQuestion._codeVraag;
+  if (!q) return;
+
+  const fb = document.getElementById('mcCodeFeedbackBox');
+  fb.className = 'feedback-box loading show';
+  document.getElementById('mcCodeFeedbackTitle').textContent = '';
+  document.getElementById('mcCodeFeedbackText').innerHTML = '<span class="spinner"></span> Beoordelen...';
+  document.getElementById('mcCodeFeedbackModel').style.display = 'none';
+  document.getElementById('mcCodeSubmitBtn').disabled = true;
+  document.getElementById('mcCodeHintBtn').disabled = true;
+
+  const criteria = q.beoordelingscriteria.join('\n- ');
+  const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
+
+Vraag: ${q.vraag}
+Beoordelingscriteria:
+- ${criteria}
+
+Antwoord van kandidaat:
+${answer}
+
+Model antwoord (intern):
+${q.model_antwoord}
+
+Reageer UITSLUITEND met geldig JSON:
+{
+  "correct": true of false,
+  "score": getal 0-100,
+  "feedback": "2-4 zinnen feedback in het Nederlands",
+  "toon_model": true of false
+}`;
+
+  try {
+    const res = await callClaude(prompt, 400);
+    const clean = res.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    const correct = result.correct || result.score >= 70;
+
+    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
+    document.getElementById('mcCodeFeedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    document.getElementById('mcCodeFeedbackText').textContent = result.feedback;
+
+    if (result.toon_model || !correct) {
+      document.getElementById('mcCodeFeedbackModel').style.display = 'block';
+      document.getElementById('mcCodeModelAnswer').textContent = q.model_antwoord;
+    }
+
+    saveProgress('theorie_mc', correct, result.score);
+    document.getElementById('mcCodeNextRow').style.display = 'block';
+  } catch(e) {
+    fb.className = 'feedback-box show incorrect';
+    document.getElementById('mcCodeFeedbackTitle').textContent = 'Fout bij beoordelen.';
+    document.getElementById('mcCodeSubmitBtn').disabled = false;
+  }
+}
+
+function mcCodeRequestHint() {
+  const q = currentMcQuestion._codeVraag;
+  if (!q || !q.hints.length) return;
+  document.getElementById('mcCodeHintBtn').disabled = true;
+  const hintBox = document.getElementById('mcCodeHintBox');
+  hintBox.className = 'hint-box show';
+  hintBox.textContent = '💡 ' + q.hints[0];
+}
+
+// ─── MC QUESTIONS ────────────────────────────────────────────────────────────
+const mcOnderwerpenPerTopic = {
+  regex: [
+    'Verschil tussen re.match, re.search en re.fullmatch',
+    'Named groups en hoe je ze uitleest',
+    'Greedy vs non-greedy quantifiers',
+    'Gebruik van re.findall vs re.finditer',
+    'Lookahead en lookbehind assertions',
+    'Character classes en negatie',
+    'Anchors: ^ en $ in multiline mode',
+    'Substitutie met re.sub en backreferences',
+    'Compiled regex patterns en performance',
+    'Flags zoals re.IGNORECASE en re.MULTILINE'
+  ],
+  pandas: [
+    'Verschil tussen loc en iloc',
+    'Hoe query() werkt vergeleken met boolean indexing',
+    'groupby en aggregatiefuncties',
+    'merge vs join vs concat',
+    'Omgaan met NaN waarden',
+    'resample voor tijdreeksdata',
+    'apply vs vectorized operaties',
+    'MultiIndex DataFrames',
+    'str accessor voor tekstkolommen',
+    'pivot_table vs crosstab'
+  ],
+  sre: [
+    'Retry logic en exponential backoff',
+    'subprocess.run vs subprocess.Popen',
+    'Structured logging vs plain text logs',
+    'Context managers en resource beheer',
+    'Signaalafhandeling in Python scripts',
+    'Graceful shutdown van services',
+    'Health checks en liveness probes',
+    'Incident response stappen',
+    'Monitoring vs observability',
+    'Foutafhandeling in productie scripts'
+  ],
+  kubernetes: [
+    'Verschil tussen Deployment en StatefulSet',
+    'Liveness vs readiness vs startup probes',
+    'Resource requests vs limits',
+    'ConfigMap vs Secret',
+    'Rolling update vs recreate strategie',
+    'Namespace isolatie en RBAC',
+    'Pod affinity en anti-affinity',
+    'HorizontalPodAutoscaler werking',
+    'Service types: ClusterIP, NodePort, LoadBalancer',
+    'Init containers gebruik'
+  ],
+  oop: [
+    'Verschil tussen klasse- en instantiemethoden',
+    '@classmethod vs @staticmethod',
+    'Dunder methods en operator overloading',
+    'Abstracte klassen met ABC',
+    'Inheritance vs compositie',
+    'Dataclasses vs gewone klassen',
+    '@property getter en setter',
+    'MRO bij meervoudige inheritance',
+    'Mixin patroon',
+    '__slots__ voor geheugenoptimalisatie'
+  ],
+  basics: [
+    'List comprehension vs map/filter',
+    'Dict comprehension gebruik',
+    'Generators vs lijsten: geheugen en performance',
+    'try/except/else/finally flow',
+    'Context managers met with',
+    '*args en **kwargs in functies',
+    'Unpacking van iterables',
+    'f-strings vs .format()',
+    'JSON laden en schrijven',
+    'Type hints en hun doel'
+  ],
+  linux: [
+    'Verschil tussen ps aux en top/htop',
+    'grep, awk en sed: wanneer gebruik je wat',
+    'Netwerk troubleshooting met ss vs netstat',
+    'systemctl vs service commando',
+    'journalctl filters en gebruik',
+    'File permissions: chmod, chown en octal notatie',
+    'Signals: SIGTERM vs SIGKILL vs SIGHUP',
+    'cgroups en resource limiting',
+    'strace en lsof voor debugging',
+    'df vs du: disk usage analyseren',
+    'inode uitputting en hoe te detecteren',
+    '/proc filesystem voor process info'
+  ]
+};
+
+async function loadMcQuestion() {
+  const idx = mcSession.current;
+  document.getElementById('mcCounter').textContent = `Vraag ${idx + 1}/${selectedCount}`;
+  document.getElementById('mcProgressFill').style.width = `${(idx / selectedCount) * 100}%`;
+  document.getElementById('mcTopic').textContent = 'Theorie';
+  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
+  const mcDiff = document.getElementById('mcDiff');
+  mcDiff.className = 'badge ' + diffClass;
+  mcDiff.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
+
+  document.getElementById('mcQuestionText').textContent = 'Vraag genereren...';
+  document.getElementById('mcCodeBlock').style.display = 'none';
+  document.getElementById('mcOptions').innerHTML = '';
+  document.getElementById('mcFeedbackBox').className = 'feedback-box';
+  document.getElementById('mcNextRow').style.display = 'none';
+  currentMcQuestion = null;
+
+  const topicOnderwerpen = mcOnderwerpenPerTopic[selectedTopic] || mcOnderwerpenPerTopic['basics'];
+  document.getElementById('mcTopic').textContent = TOPIC_LABELS[selectedTopic];
+
+  const gebruikteOnderwerpen = mcSession.results.map(r => r.onderwerp || '').filter(Boolean);
+  const beschikbaar = topicOnderwerpen.filter(o => !gebruikteOnderwerpen.includes(o));
+  const onderwerp = beschikbaar.length > 0
+    ? beschikbaar[Math.floor(Math.random() * beschikbaar.length)]
+    : topicOnderwerpen[Math.floor(Math.random() * topicOnderwerpen.length)];
+
+  const prompt = `Je bent een oefendocent voor een Trading Reliability Engineer rol bij een high-frequency trading bedrijf.
+Genereer één multiple choice vraag op niveau: ${selectedDiff} over het onderwerp: "${onderwerp}".
+De vraag toetst begrip van concepten relevant voor een Trading Reliability Engineer.
+
+Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
+{
+  "vraag": "de vraag in het Nederlands",
+  "onderwerp": "${onderwerp}",
+  "code": "optioneel kort code fragment als het de vraag verduidelijkt, anders lege string",
+  "opties": ["optie A", "optie B", "optie C", "optie D"],
+  "correct": 0,
+  "uitleg": "uitleg van het juiste antwoord in 2-3 zinnen Nederlands"
+}
+
+Waarbij "correct" de index is (0=A, 1=B, 2=C, 3=D) van het juiste antwoord.`;
+
+  try {
+    const res = await callClaude(prompt, 600);
+    const clean = res.replace(/```json|```/g, '').trim();
+    currentMcQuestion = JSON.parse(clean);
+
+    document.getElementById('mcQuestionText').textContent = currentMcQuestion.vraag;
+
+    if (currentMcQuestion.code && currentMcQuestion.code.trim()) {
+      document.getElementById('mcCodeBlock').textContent = currentMcQuestion.code;
+      document.getElementById('mcCodeBlock').style.display = 'block';
+    }
+
+    const letters = ['A', 'B', 'C', 'D'];
+    const container = document.getElementById('mcOptions');
+    currentMcQuestion.opties.forEach((opt, i) => {
+      const div = document.createElement('div');
+      div.className = 'mc-option';
+      div.innerHTML = `<div class="mc-letter">${letters[i]}</div><div>${opt}</div>`;
+      div.onclick = () => selectMcAnswer(i);
+      container.appendChild(div);
+    });
+  } catch(e) {
+    document.getElementById('mcQuestionText').textContent = 'Fout bij laden. Controleer je API key.';
+  }
+}
+
+function selectMcAnswer(idx) {
+  if (!currentMcQuestion) return;
+  const options = document.querySelectorAll('.mc-option');
+  const correct = currentMcQuestion.correct;
+  const isCorrect = idx === correct;
+
+  options.forEach((opt, i) => {
+    if (i === correct) opt.classList.add('correct');
+    else if (i === idx && !isCorrect) opt.classList.add('wrong');
+    else opt.classList.add('disabled');
+  });
+
+  const fb = document.getElementById('mcFeedbackBox');
+  fb.className = 'feedback-box show ' + (isCorrect ? 'correct' : 'incorrect');
+  document.getElementById('mcFeedbackTitle').textContent = isCorrect ? '✓ Correct!' : '✗ Niet juist';
+  document.getElementById('mcFeedbackText').textContent = currentMcQuestion.uitleg;
+
+  mcSession.results.push({
+    vraag: currentMcQuestion.vraag,
+    onderwerp: currentMcQuestion.onderwerp,
+    correct: isCorrect,
+    score: isCorrect ? 100 : 0
+  });
+
+  saveProgress('theorie_mc', isCorrect, isCorrect ? 100 : 0);
+  updateHeaderScore();
+  document.getElementById('mcNextRow').style.display = 'block';
+}
+
+function mcNextQuestion() {
+  mcSession.current++;
+  if (mcSession.current >= selectedCount) {
+    showMcResults();
+  } else {
+    loadMcQuestion();
+  }
+}
+
+function showMcResults() {
+  const results = mcSession.results;
+  const correct = results.filter(r => r.correct).length;
+  const total = results.length;
+  const pct = total ? Math.round((correct / total) * 100) : 0;
+
+  document.getElementById('scoreText').textContent = `${correct}/${total}`;
+  const offset = 264 - (264 * pct / 100);
+  setTimeout(() => { document.getElementById('scoreArc').style.strokeDashoffset = offset; }, 100);
+
+  const titles = { 0: 'Blijf oefenen!', 50: 'Goed bezig!', 70: 'Sterk!', 90: 'Uitstekend!' };
+  const titleKey = [90,70,50,0].find(k => pct >= k);
+  document.getElementById('resultsTitle').textContent = titles[titleKey];
+  document.getElementById('resultsSubtitle').textContent = `${correct} van ${total} vragen correct — ${pct}%`;
+
+  document.getElementById('topicProgress').innerHTML = `<h3>Score deze sessie</h3>
+    <div class="topic-row">
+      <span class="topic-name">Theorie MC</span>
+      <div class="topic-bar-bg"><div class="topic-bar-fill" style="width:${pct}%"></div></div>
+      <span class="topic-pct">${pct}%</span>
+    </div>`;
+
+  document.getElementById('logList').innerHTML = results.map(r => {
+    const cls = r.correct ? 'ok' : 'fail';
+    const icon = r.correct ? '✓' : '✗';
+    return `<div class="log-item">
+      <div class="log-icon ${cls}">${icon}</div>
+      <div>
+        <div class="log-q">${r.vraag.substring(0, 120)}${r.vraag.length > 120 ? '...' : ''}</div>
+        <div class="log-meta">${r.onderwerp}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  showScreen('results');
+}
+
+// ─── RESULTS ─────────────────────────────────────────────────────────────────
+function showResults() {
+  const results = session.results;
+  const correct = results.filter(r => r.correct).length;
+  const total = results.length;
+  const pct = total ? Math.round((correct / total) * 100) : 0;
+
+  document.getElementById('scoreText').textContent = `${correct}/${total}`;
+  const offset = 264 - (264 * pct / 100);
+  setTimeout(() => { document.getElementById('scoreArc').style.strokeDashoffset = offset; }, 100);
+
+  const titles = { 0: 'Blijf oefenen!', 50: 'Goed bezig!', 70: 'Sterk!', 90: 'Uitstekend!' };
+  const titleKey = [90,70,50,0].find(k => pct >= k);
+  document.getElementById('resultsTitle').textContent = titles[titleKey];
+  document.getElementById('resultsSubtitle').textContent = `${correct} van ${total} vragen correct — ${pct}%`;
+
+  const tp = document.getElementById('topicProgress');
+  tp.innerHTML = `<h3>Score deze sessie</h3>
+    <div class="topic-row">
+      <span class="topic-name">${TOPIC_LABELS[selectedTopic]}</span>
+      <div class="topic-bar-bg"><div class="topic-bar-fill" style="width:${pct}%"></div></div>
+      <span class="topic-pct">${pct}%</span>
+    </div>`;
+
+  const logList = document.getElementById('logList');
+  logList.innerHTML = results.map((r, i) => {
+    const cls = r.skipped ? 'skip' : r.correct ? 'ok' : 'fail';
+    const icon = r.skipped ? '—' : r.correct ? '✓' : '✗';
+    return `<div class="log-item">
+      <div class="log-icon ${cls}">${icon}</div>
+      <div>
+        <div class="log-q">${r.vraag.substring(0, 120)}${r.vraag.length > 120 ? '...' : ''}</div>
+        <div class="log-meta">${r.skipped ? 'Overgeslagen' : `Score: ${r.score}/100`}${r.hintUsed ? ' · hint gebruikt' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  showScreen('results');
+}
+
+function updateHeaderScore() {
+  const c = session.results.filter(r => r.correct).length;
+  document.getElementById('headerScoreVal').textContent = `${c}/${session.results.length}`;
+}
+
+// ─── PROGRESS STORAGE ────────────────────────────────────────────────────────
+function saveProgress(topic, correct, score) {
+  const data = JSON.parse(localStorage.getItem('sre_progress') || '{}');
+  if (!data[topic]) data[topic] = { total: 0, correct: 0, scores: [] };
+  data[topic].total++;
+  if (correct) data[topic].correct++;
+  data[topic].scores.push(score);
+  localStorage.setItem('sre_progress', JSON.stringify(data));
+  localStorage.setItem('sre_last_session', new Date().toISOString());
+}
+
+function getProgress() {
+  return JSON.parse(localStorage.getItem('sre_progress') || '{}');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const data = getProgress();
+  const topics = Object.keys(TOPIC_LABELS);
+  let totalQ = 0, totalC = 0;
+  topics.forEach(t => { if (data[t]) { totalQ += data[t].total; totalC += data[t].correct; } });
+
+  const lastSession = localStorage.getItem('sre_last_session');
+  const lastStr = lastSession ? new Date(lastSession).toLocaleDateString('nl-NL') : '—';
+  const avgPct = totalQ ? Math.round((totalC / totalQ) * 100) : 0;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Vragen totaal</div><div class="stat-value">${totalQ}</div><div class="stat-sub">beantwoord</div></div>
+    <div class="stat-card"><div class="stat-label">Gemiddeld</div><div class="stat-value">${avgPct}%</div><div class="stat-sub">correct</div></div>
+    <div class="stat-card"><div class="stat-label">Laatste sessie</div><div class="stat-value" style="font-size:18px">${lastStr}</div></div>`;
+
+  const dashTopics = document.getElementById('dashTopics');
+  if (totalQ === 0) {
+    dashTopics.innerHTML = '<div class="empty-state"><p>Nog geen sessies voltooid. Start je eerste sessie!</p></div>';
+    return;
+  }
+  dashTopics.innerHTML = topics.map(t => {
+    const d = data[t] || { total: 0, correct: 0 };
+    const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
+    return `<div class="topic-card">
+      <div class="topic-icon">${TOPIC_ICONS[t]}</div>
+      <div class="topic-info">
+        <div class="topic-info-name">${TOPIC_LABELS[t]}</div>
+        <div class="topic-info-bar-bg"><div class="topic-info-bar-fill" style="width:${pct}%"></div></div>
+        <div class="topic-info-stats">${d.correct}/${d.total} correct</div>
+      </div>
+      <div class="topic-pct-big">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+function clearData() {
+  if (!confirm('Weet je zeker dat je alle voortgang wilt wissen?')) return;
+  localStorage.removeItem('sre_progress');
+  localStorage.removeItem('sre_last_session');
+  renderDashboard();
+}
+
+// ─── CLAUDE API ──────────────────────────────────────────────────────────────
+async function callClaude(prompt, maxTokens) {
+  const res = await fetch('/api/ask', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-app-password': appPassword
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (res.status === 401) {
+    sessionStorage.removeItem('app_password');
+    appPassword = '';
+    showScreen('login');
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = 'Sessie verlopen of ongeldig wachtwoord.';
+    throw new Error('Unauthorized');
+  }
+  if (!res.ok) throw new Error('API error: ' + res.status);
+  const data = await res.json();
+  return data.content[0].text;
+}
+</script>
+</body>
+</html>
