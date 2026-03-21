@@ -877,7 +877,15 @@ Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
       document.getElementById('answerInput').value = currentQuestion.starter_code;
     }
   } catch(e) {
-    document.getElementById('questionText').textContent = 'Fout bij laden van vraag. Controleer je API key en probeer opnieuw.';
+    document.getElementById('questionText').textContent = 'Fout bij laden. Controleer je verbinding.';
+    if (!document.getElementById('questionRetryBtn')) {
+      const retryBtn = document.createElement('button');
+      retryBtn.id = 'questionRetryBtn';
+      retryBtn.textContent = '↺ Opnieuw proberen';
+      retryBtn.style.marginTop = '1rem';
+      retryBtn.onclick = loadNextQuestion;
+      document.getElementById('questionText').after(retryBtn);
+    }
   }
 }
 
@@ -1040,7 +1048,15 @@ Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
       document.getElementById('mcCodeAnswerInput').value = q.starter_code;
     }
   } catch(e) {
-    document.getElementById('mcCodeQuestionText').textContent = 'Fout bij laden. Controleer je API key.';
+    document.getElementById('mcCodeQuestionText').textContent = 'Fout bij laden. Controleer je verbinding.';
+    if (!document.getElementById('mcCodeRetryBtn')) {
+      const retryBtn = document.createElement('button');
+      retryBtn.id = 'mcCodeRetryBtn';
+      retryBtn.textContent = '↺ Opnieuw proberen';
+      retryBtn.style.marginTop = '1rem';
+      retryBtn.onclick = mcStartCodePractice;
+      document.getElementById('mcCodeQuestionText').after(retryBtn);
+    }
   }
 }
 
@@ -1273,7 +1289,15 @@ Waarbij "correct" de index is (0=A, 1=B, 2=C, 3=D) van het juiste antwoord.`;
       container.appendChild(div);
     });
   } catch(e) {
-    document.getElementById('mcQuestionText').textContent = 'Fout bij laden. Controleer je API key.';
+    document.getElementById('mcQuestionText').textContent = 'Fout bij laden. Controleer je verbinding.';
+    if (!document.getElementById('mcRetryBtn')) {
+      const retryBtn = document.createElement('button');
+      retryBtn.id = 'mcRetryBtn';
+      retryBtn.textContent = '↺ Opnieuw proberen';
+      retryBtn.style.marginTop = '1rem';
+      retryBtn.onclick = loadMcQuestion;
+      document.getElementById('mcQuestionText').after(retryBtn);
+    }
   }
 }
 
