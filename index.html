@@ -589,6 +589,53 @@
       </div>
     </div>
 
+    <!-- FOLLOWUP PRACTICE SCREEN -->
+    <div class="screen" id="screen-followup-practice">
+      <div class="q-header">
+        <div class="q-meta">
+          <span class="badge badge-topic" id="followupPracticeTopic"></span>
+          <span class="badge" id="followupPracticeDiff"></span>
+          <span class="badge" style="background:var(--surface2);border:1px solid var(--border);color:var(--accent);">verdieping</span>
+        </div>
+        <button class="ghost" style="font-size:13px;padding:4px 10px;" onclick="showScreen('question')">← Terug</button>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:13px;color:var(--muted);line-height:1.5;">
+        💡 Gebaseerd op je vervolgvraag over: <span id="followupPracticeOnderwerp" style="color:var(--text);font-weight:500;"></span>
+      </div>
+
+      <div class="question-box">
+        <div class="question-title">Opdracht</div>
+        <div class="question-text" id="followupPracticeText">Laden...</div>
+        <div class="code-block" id="followupPracticeStarter" style="display:none"></div>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-label">Jouw antwoord</div>
+        <textarea class="code-answer" id="followupPracticeInput" placeholder="Schrijf hier je Python code..."></textarea>
+      </div>
+
+      <div class="hint-box" id="followupPracticeHintBox"></div>
+
+      <div class="action-row">
+        <button class="primary" id="followupPracticeSubmitBtn" onclick="submitFollowupPractice()">Controleer antwoord</button>
+        <button onclick="showFollowupHint()" id="followupPracticeHintBtn">Hint</button>
+      </div>
+
+      <div class="feedback-box" id="followupPracticeFeedbackBox">
+        <div class="feedback-title" id="followupPracticeFeedbackTitle"></div>
+        <div class="feedback-text" id="followupPracticeFeedbackText"></div>
+        <div class="feedback-model" id="followupPracticeFeedbackModel" style="display:none">
+          <div class="feedback-model-label">Voorbeeldoplossing</div>
+          <div class="code-block" id="followupPracticeModelAnswer"></div>
+        </div>
+      </div>
+
+      <div id="followupPracticeNextRow" style="margin-top:1rem;display:none;">
+        <button class="primary" onclick="showScreen('question')">Terug naar sessie →</button>
+      </div>
+    </div>
+
     <!-- QUESTION SCREEN -->
     <div class="screen" id="screen-question">
       <div class="q-header">
@@ -636,6 +683,9 @@
             <button onclick="askFollowup('code')" style="padding:0 14px;font-size:13px;">Vraag →</button>
           </div>
           <div id="followupAnswer" style="display:none;margin-top:0.75rem;font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;"></div>
+          <div id="followupPracticeRow" style="display:none;margin-top:0.75rem;">
+            <button onclick="startFollowupPractice()" style="background:var(--surface2);border-color:var(--accent);color:var(--accent);font-size:13px;">Oefen dit onderwerp in code →</button>
+          </div>
         </div>
       </div>
 
@@ -1483,6 +1533,8 @@ function clearData() {
 }
 
 // ─── FOLLOW-UP ────────────────────────────────────────────────────────────────
+let lastFollowupContext = null;
+
 async function askFollowup(mode) {
   const inputId = mode === 'mc' ? 'mcFollowupInput' : 'followupInput';
   const answerId = mode === 'mc' ? 'mcFollowupAnswer' : 'followupAnswer';
@@ -1492,6 +1544,10 @@ async function askFollowup(mode) {
   const answerEl = document.getElementById(answerId);
   answerEl.style.display = 'block';
   answerEl.textContent = 'Laden...';
+
+  if (mode === 'code') {
+    document.getElementById('followupPracticeRow').style.display = 'none';
+  }
 
   let context = '';
   if (mode === 'mc' && currentMcQuestion) {
@@ -1512,9 +1568,142 @@ Geef een duidelijk en beknopt antwoord in het Nederlands (max 4 zinnen).`;
   try {
     const res = await callClaude(prompt, 300);
     answerEl.textContent = res;
+
+    if (mode === 'code') {
+      lastFollowupContext = { vraag: question, antwoord: res, topic: selectedTopic };
+      document.getElementById('followupPracticeRow').style.display = 'block';
+    }
   } catch(e) {
     answerEl.textContent = 'Fout bij laden van antwoord.';
   }
+}
+
+let currentFollowupPracticeQuestion = null;
+
+async function startFollowupPractice() {
+  if (!lastFollowupContext) return;
+
+  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
+  document.getElementById('followupPracticeTopic').textContent = TOPIC_LABELS[lastFollowupContext.topic];
+  const diffEl = document.getElementById('followupPracticeDiff');
+  diffEl.className = 'badge ' + diffClass;
+  diffEl.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
+  document.getElementById('followupPracticeOnderwerp').textContent = lastFollowupContext.vraag;
+  document.getElementById('followupPracticeText').textContent = 'Opdracht genereren...';
+  document.getElementById('followupPracticeStarter').style.display = 'none';
+  document.getElementById('followupPracticeInput').value = '';
+  document.getElementById('followupPracticeFeedbackBox').className = 'feedback-box';
+  document.getElementById('followupPracticeHintBox').className = 'hint-box';
+  document.getElementById('followupPracticeNextRow').style.display = 'none';
+  document.getElementById('followupPracticeSubmitBtn').disabled = false;
+  document.getElementById('followupPracticeHintBtn').disabled = false;
+  currentFollowupPracticeQuestion = null;
+
+  showScreen('followup-practice');
+
+  const prompt = `Je bent een Python oefendocent voor een Trading Reliability Engineer rol.
+Een kandidaat stelde de volgende vervolgvraag na een oefening: "${lastFollowupContext.vraag}"
+Het antwoord was: "${lastFollowupContext.antwoord}"
+
+Genereer nu een gerichte Python codeer-opdracht op niveau ${selectedDiff} die precies dit concept oefent.
+De opdracht moet aansluiten op het kernonderwerp uit de vervolgvraag.
+
+Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
+{
+  "vraag": "duidelijke Python codeer-opdracht in het Nederlands, max 3 zinnen",
+  "starter_code": "optionele startcode, lege string als niet van toepassing",
+  "hints": ["hint1 in het Nederlands", "hint2 in het Nederlands"],
+  "model_antwoord": "de correcte Python code oplossing",
+  "beoordelingscriteria": ["criterium 1", "criterium 2", "criterium 3"]
+}`;
+
+  try {
+    const res = await callClaude(prompt, 800);
+    const clean = res.replace(/```json|```/g, '').trim();
+    currentFollowupPracticeQuestion = JSON.parse(clean);
+
+    document.getElementById('followupPracticeText').textContent = currentFollowupPracticeQuestion.vraag;
+    if (currentFollowupPracticeQuestion.starter_code && currentFollowupPracticeQuestion.starter_code.trim()) {
+      document.getElementById('followupPracticeStarter').textContent = currentFollowupPracticeQuestion.starter_code;
+      document.getElementById('followupPracticeStarter').style.display = 'block';
+      document.getElementById('followupPracticeInput').value = currentFollowupPracticeQuestion.starter_code;
+    }
+  } catch(e) {
+    document.getElementById('followupPracticeText').textContent = 'Fout bij laden. Controleer je verbinding.';
+    if (!document.getElementById('followupPracticeRetryBtn')) {
+      const btn = document.createElement('button');
+      btn.id = 'followupPracticeRetryBtn';
+      btn.textContent = '↺ Opnieuw proberen';
+      btn.style.marginTop = '1rem';
+      btn.onclick = startFollowupPractice;
+      document.getElementById('followupPracticeText').after(btn);
+    }
+  }
+}
+
+async function submitFollowupPractice() {
+  const answer = document.getElementById('followupPracticeInput').value.trim();
+  if (!answer || !currentFollowupPracticeQuestion) return;
+
+  const fb = document.getElementById('followupPracticeFeedbackBox');
+  fb.className = 'feedback-box loading show';
+  document.getElementById('followupPracticeFeedbackTitle').textContent = '';
+  document.getElementById('followupPracticeFeedbackText').innerHTML = '<span class="spinner"></span> Beoordelen...';
+  document.getElementById('followupPracticeFeedbackModel').style.display = 'none';
+  document.getElementById('followupPracticeSubmitBtn').disabled = true;
+  document.getElementById('followupPracticeHintBtn').disabled = true;
+
+  const criteria = currentFollowupPracticeQuestion.beoordelingscriteria.join('\n- ');
+  const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
+
+Vraag: ${currentFollowupPracticeQuestion.vraag}
+Beoordelingscriteria:
+- ${criteria}
+
+Antwoord van kandidaat:
+${answer}
+
+Model antwoord (intern):
+${currentFollowupPracticeQuestion.model_antwoord}
+
+Reageer UITSLUITEND met geldig JSON:
+{
+  "correct": true of false,
+  "score": getal 0-100,
+  "feedback": "2-4 zinnen feedback in het Nederlands",
+  "toon_model": true of false
+}`;
+
+  try {
+    const res = await callClaude(prompt, 400);
+    const clean = res.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    const correct = result.correct || result.score >= 70;
+
+    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
+    document.getElementById('followupPracticeFeedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    document.getElementById('followupPracticeFeedbackText').textContent = result.feedback;
+
+    if (result.toon_model || !correct) {
+      document.getElementById('followupPracticeFeedbackModel').style.display = 'block';
+      document.getElementById('followupPracticeModelAnswer').textContent = currentFollowupPracticeQuestion.model_antwoord;
+    }
+
+    saveProgress(lastFollowupContext.topic, correct, result.score);
+    document.getElementById('followupPracticeNextRow').style.display = 'block';
+  } catch(e) {
+    fb.className = 'feedback-box show incorrect';
+    document.getElementById('followupPracticeFeedbackTitle').textContent = 'Fout bij beoordelen.';
+    document.getElementById('followupPracticeSubmitBtn').disabled = false;
+  }
+}
+
+function showFollowupHint() {
+  if (!currentFollowupPracticeQuestion || !currentFollowupPracticeQuestion.hints.length) return;
+  document.getElementById('followupPracticeHintBtn').disabled = true;
+  const hintBox = document.getElementById('followupPracticeHintBox');
+  hintBox.className = 'hint-box show';
+  hintBox.textContent = '💡 ' + currentFollowupPracticeQuestion.hints[0];
 }
 
 // ─── CLAUDE API ──────────────────────────────────────────────────────────────
