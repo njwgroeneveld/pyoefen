@@ -684,7 +684,7 @@
           </div>
           <div id="followupAnswer" style="display:none;margin-top:0.75rem;font-size:14px;line-height:1.7;color:var(--text);white-space:pre-wrap;"></div>
           <div id="followupPracticeRow" style="display:none;margin-top:0.75rem;">
-            <button onclick="startFollowupPractice()" style="background:var(--surface2);border-color:var(--accent);color:var(--accent);font-size:13px;">Oefen dit onderwerp in code →</button>
+            <button onclick="startFollowupPractice()" style="background:var(--surface2);border-color:var(--accent);color:var(--accent);font-size:13px;" id="followupPracticeBtn">Oefen dit onderwerp in code →</button>
           </div>
         </div>
       </div>
@@ -1004,6 +1004,8 @@ Reageer UITSLUITEND met geldig JSON:
     document.getElementById('followupSection').style.display = 'block';
     document.getElementById('followupAnswer').style.display = 'none';
     document.getElementById('followupInput').value = '';
+    document.getElementById('followupPracticeRow').style.display = 'block';
+    lastFollowupContext = { vraag: currentQuestion.vraag, antwoord: currentQuestion.model_antwoord, topic: selectedTopic };
 
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -1572,8 +1574,7 @@ Geef een duidelijk en beknopt antwoord in het Nederlands (max 4 zinnen).`;
     if (mode === 'code') {
       lastFollowupContext = { vraag: question, antwoord: res, topic: selectedTopic };
       document.getElementById('followupPracticeRow').style.display = 'block';
-    }
-  } catch(e) {
+    }  } catch(e) {
     answerEl.textContent = 'Fout bij laden van antwoord.';
   }
 }
