@@ -14,27 +14,35 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  const appPassword = event.headers['x-app-password'];
-  const expectedPassword = process.env.APP_PASSWORD;
+  // Netlify normaliseert headers naar lowercase
+  const appPassword = event.headers['x-app-password'] || event.headers['X-App-Password'] || '';
+  const expectedPassword = (process.env.APP_PASSWORD || '').trim();
 
   if (!expectedPassword) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server configuratie fout: APP_PASSWORD niet ingesteld' }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'APP_PASSWORD niet ingesteld' }) };
   }
 
-  if (appPassword !== expectedPassword) {
-    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Ongeldig wachtwoord' }) };
+  if (appPassword.trim() !== expectedPassword) {
+    return { 
+      statusCode: 401, 
+      headers, 
+      body: JSON.stringify({ 
+        error: 'Ongeldig wachtwoord',
+        debug: `ontvangen: "${appPassword.trim()}", verwacht lengte: ${expectedPassword.length}`
+      }) 
+    };
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server configuratie fout: ANTHROPIC_API_KEY niet ingesteld' }) };
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'ANTHROPIC_API_KEY niet ingesteld' }) };
   }
 
   let body;
   try {
     body = JSON.parse(event.body);
   } catch(e) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ongeldige JSON in request body' }) };
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Ongeldige JSON' }) };
   }
 
   try {
