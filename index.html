@@ -1765,16 +1765,29 @@ async function callClaude(prompt, maxTokens) {
       messages: [{ role: 'user', content: prompt }]
     })
   });
+
   if (res.status === 401) {
     sessionStorage.removeItem('app_password');
     appPassword = '';
     showScreen('login');
     document.getElementById('loginError').style.display = 'block';
-    document.getElementById('loginError').textContent = 'Sessie verlopen of ongeldig wachtwoord.';
+    document.getElementById('loginError').textContent = 'Sessie verlopen — log opnieuw in.';
     throw new Error('Unauthorized');
   }
-  if (!res.ok) throw new Error('API error: ' + res.status);
+
+  if (res.status === 500 || res.status === 502) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Server fout — probeer opnieuw');
+  }
+
+  if (!res.ok) {
+    throw new Error('API fout: ' + res.status);
+  }
+
   const data = await res.json();
+  if (!data.content || !data.content[0]) {
+    throw new Error('Leeg antwoord van API');
+  }
   return data.content[0].text;
 }
 </script>
