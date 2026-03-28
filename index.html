@@ -424,6 +424,20 @@
                 <div class="option-sub">processes, netwerk, logs, tools</div>
               </div>
             </label>
+            <label class="option-item" onclick="selectTopic(this,'numpy')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">NumPy</div>
+                <div class="option-sub">arrays, statistieken, correlaties</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'prometheus')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Prometheus analyse</div>
+                <div class="option-sub">JSON → NumPy → Pandas pipeline</div>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -772,9 +786,11 @@ const TOPIC_LABELS = {
   kubernetes: 'Kubernetes',
   oop: 'OOP',
   basics: 'Python basics',
-  linux: 'Linux'
+  linux: 'Linux',
+  numpy: 'NumPy',
+  prometheus: 'Prometheus analyse'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧' };
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', numpy: '🔢', prometheus: '📈' };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function doLogin() {
@@ -873,7 +889,9 @@ async function loadNextQuestion() {
     kubernetes: 'Kubernetes concepten en Python kubernetes-client: pods, deployments, services, namespaces, resource requests/limits, kubectl equivalenten in Python. Context: beheren van trading applicaties zoals order routers en exchange connectors in een k8s cluster, bewaken van pod stabiliteit tijdens market hours.',
     oop: 'Python OOP: klassen, __init__, instance/class/static methods, inheritance, super(), abstracte klassen, dataclasses, properties, dunder methods (__str__, __repr__, __eq__), decorators (@property, @classmethod). Context: modelleren van trading componenten zoals orders, positions, exchange connecties en monitoring tools.',
     basics: 'Python basisvaardigheden: list comprehensions, dict comprehensions, JSON laden/schrijven (json.load, json.dumps), error handling (try/except/finally), generators, lambda & map/filter, type hints, context managers (with), f-strings, *args/**kwargs, unpacking. Context: verwerken van trade berichten, configuratie bestanden en API responses in een trading omgeving.',
-    linux: 'Linux systeembeheer via Python subprocess: process monitoring (ps, top, htop), log analyse (grep, awk, sed), netwerk troubleshooting (netstat, ss, tcpdump), service management (systemctl, journalctl), resource limiting (ulimit, cgroups), file permissions, debugging tools (strace, lsof), disk en memory analyse (df, free, iostat). Schrijf Python scripts die deze tools aanroepen en de output parsen. Context: troubleshooting en monitoring van trading systemen op Linux servers.'
+    linux: 'Linux systeembeheer via Python subprocess: process monitoring (ps, top, htop), log analyse (grep, awk, sed), netwerk troubleshooting (netstat, ss, tcpdump), service management (systemctl, journalctl), resource limiting (ulimit, cgroups), file permissions, debugging tools (strace, lsof), disk en memory analyse (df, free, iostat). Schrijf Python scripts die deze tools aanroepen en de output parsen. Context: troubleshooting en monitoring van trading systemen op Linux servers.',
+    numpy: 'NumPy voor data-analyse: arrays aanmaken en manipuleren, broadcasting, np.mean/std/min/max/sum, np.percentile (p50/p95/p99), np.corrcoef voor correlaties, np.polyfit voor trendlijnen, np.diff voor verschilberekeningen, np.where voor conditionele selectie, np.argsort voor sortering, boolean indexing. Context: analyseren van trading metrics zoals latency, CPU throttling en memory gebruik.',
+    prometheus: 'Prometheus API analyse pipeline: requests.get naar Prometheus HTTP API, parsen van JSON response (status/data/result/values), omzetten van tijdstempel+waarde arrays naar NumPy arrays, verder verwerken met Pandas DataFrames. Chaos scenario\'s: UDP loss, TCP retransmits, CPU throttling (container_cpu_cfs_throttled_seconds_total), memory stress (container_memory_working_set_bytes), pod errors. Bereken correlaties tussen metrics, detecteer anomalieën, vind piekperiodes. Context: jouw eigen Kubernetes cluster met trader en exchange pods.'
   };
 
   const topicVraagtypen = {
@@ -883,7 +901,9 @@ async function loadNextQuestion() {
     kubernetes: ['pods in namespace opvragen', 'resource usage filteren', 'deployment schalen', 'pod logs ophalen', 'service endpoints', 'namespace aanmaken', 'label selector queries', 'pod status controleren', 'configmap uitlezen', 'events opvragen'],
     oop: ['basis klasse met __init__', 'inheritance en super()', 'abstracte basisklasse', 'dataclass aanmaken', '@property getter/setter', '@classmethod factory method', '@staticmethod utility', 'dunder __str__ en __repr__', 'meervoudige inheritance', 'mixin patroon'],
     basics: ['list comprehension', 'dict comprehension', 'JSON lezen en schrijven', 'try/except/finally foutafhandeling', 'generator functie', 'lambda met map en filter', 'type hints toevoegen', 'context manager met with', 'f-string formatting', '*args en **kwargs gebruiken'],
-    linux: ['processen monitoren met ps/top via subprocess', 'log filteren met grep via Python', 'output van awk parsen', 'netwerk verbindingen opvragen met ss/netstat', 'service status controleren via systemctl', 'journalctl logs uitlezen', 'file permissions aanpassen via Python', 'disk gebruik analyseren met df', 'memory gebruik uitlezen met free', 'lsof gebruiken om open bestanden te vinden']
+    linux: ['processen monitoren met ps/top via subprocess', 'log filteren met grep via Python', 'output van awk parsen', 'netwerk verbindingen opvragen met ss/netstat', 'service status controleren via systemctl', 'journalctl logs uitlezen', 'file permissions aanpassen via Python', 'disk gebruik analyseren met df', 'memory gebruik uitlezen met free', 'lsof gebruiken om open bestanden te vinden'],
+    numpy: ['array aanmaken en indexeren', 'boolean indexing en masking', 'np.mean en np.std berekenen', 'np.percentile voor p95/p99', 'np.corrcoef voor correlatie', 'np.diff voor tijdreeksverschillen', 'np.polyfit voor trendlijn', 'np.where voor conditionele waarden', 'np.argsort voor sortering op waarde', 'broadcasting over arrays'],
+    prometheus: ['JSON response parsen naar arrays', 'tijdstempels omzetten naar datetime', 'CPU throttling percentage berekenen', 'memory piek detecteren in tijdreeks', 'correlatie tussen twee metrics berekenen', 'anomaliedetectie met z-score', 'p95 latency berekenen uit tijdreeks', 'UDP loss patroon analyseren', 'vergelijken van metrics voor en na chaos', 'pod met hoogste resource gebruik vinden']
   };
 
   const gebruikteTypen = session.questions.map(q => q.vraagtype || '').filter(Boolean);
@@ -1267,6 +1287,30 @@ const mcOnderwerpenPerTopic = {
     'df vs du: disk usage analyseren',
     'inode uitputting en hoe te detecteren',
     '/proc filesystem voor process info'
+  ],
+  numpy: [
+    'ndarray vs Python list: wanneer gebruik je wat',
+    'Broadcasting: hoe werkt het en wanneer faalt het',
+    'Verschil tussen np.mean en np.nanmean',
+    'Wat doet np.diff op een tijdreeks',
+    'Pearson correlatie met np.corrcoef interpreteren',
+    'Boolean indexing vs np.where',
+    'np.percentile vs np.quantile',
+    'np.argsort vs np.sort',
+    'Verschil tussen axis=0 en axis=1',
+    'Wanneer gebruik je np.polyfit'
+  ],
+  prometheus: [
+    'Prometheus data model: metrics, labels en tijdreeksen',
+    'Verschil tussen counter, gauge, histogram en summary',
+    'Wat betekent rate() in PromQL',
+    'Hoe werkt de Prometheus HTTP API range_query',
+    'Wat zijn container_cpu_cfs_throttled_seconds_total metrics',
+    'Verschil tussen working_set en rss memory',
+    'Hoe interpreteer je een correlatie van 0.85 tussen twee metrics',
+    'Wat is een z-score en wanneer is iets een anomalie',
+    'Verschil tussen instantaneous en range queries',
+    'Hoe detecteer je een memory leak via tijdreeksdata'
   ]
 };
 
