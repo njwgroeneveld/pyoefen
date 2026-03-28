@@ -796,10 +796,40 @@ const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: 
 function doLogin() {
   const val = document.getElementById('loginInput').value.trim();
   if (!val) return;
-  appPassword = val;
-  sessionStorage.setItem('app_password', val);
+
+  const btn = document.querySelector('#screen-login button.primary');
+  btn.textContent = 'Controleren...';
+  btn.disabled = true;
   document.getElementById('loginError').style.display = 'none';
-  showScreen('setup');
+
+  fetch('/api/ask', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-app-password': val
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'Hi' }]
+    })
+  }).then(res => {
+    btn.textContent = 'Inloggen';
+    btn.disabled = false;
+    if (res.status === 401) {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginError').textContent = 'Ongeldig wachtwoord.';
+    } else {
+      appPassword = val;
+      sessionStorage.setItem('app_password', val);
+      showScreen('setup');
+    }
+  }).catch(() => {
+    btn.textContent = 'Inloggen';
+    btn.disabled = false;
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = 'Verbindingsfout, probeer opnieuw.';
+  });
 }
 
 function doLogout() {
