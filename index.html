@@ -912,6 +912,11 @@ async function loadNextQuestion() {
     ? beschikbaar[Math.floor(Math.random() * beschikbaar.length)]
     : topicVraagtypen[selectedTopic][Math.floor(Math.random() * topicVraagtypen[selectedTopic].length)];
 
+  const maxTokens = selectedTopic === 'prometheus' ? 1200 : 800;
+
+  const prometheusExtra = selectedTopic === 'prometheus' ? `
+BELANGRIJK voor Prometheus vragen: voeg in starter_code een realistische gesimuleerde Prometheus API response toe als Python dict (geen echte API call nodig). Gebruik korte maar representatieve tijdreeksen van max 8 datapunten. Houd de starter_code beknopt.` : '';
+
   const prompt = `Je bent een Python oefendocent die een kandidaat voorbereidt op een Trading Reliability Engineer rol.
 Genereer één Python codeer-vraag op niveau: ${selectedDiff}.
 Onderwerp: ${topicContexts[selectedTopic]}
@@ -921,8 +926,7 @@ De kandidaat moet daadwerkelijk Python code schrijven als antwoord.
 Zorg dat de vraag duidelijk over "${vraagtype}" gaat en niet over iets anders.
 Gebruik waar mogelijk een scenario dat past bij trading systemen, exchange connecties, latency of reliability.
 ${gebruikteTypen.length > 0 ? `Al behandelde vraagtypen (NIET herhalen): ${gebruikteTypen.join(', ')}.` : ''}
-
-De kandidaat moet daadwerkelijk Python code schrijven als antwoord.
+${prometheusExtra}
 
 Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
 {
@@ -935,7 +939,7 @@ Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
 }`;
 
   try {
-    const res = await callClaude(prompt, 800);
+    const res = await callClaude(prompt, maxTokens);
     const clean = res.replace(/```json|```/g, '').trim();
     currentQuestion = JSON.parse(clean);
     session.questions.push(currentQuestion);
