@@ -1575,6 +1575,12 @@ async function sbFetch(path, method = 'GET', body = null) {
   return res.json();
 }
 
+function updateHeaderScore() {
+  const results = selectedMod === 'mc' ? mcSession.results : session.results;
+  const c = results.filter(r => r.correct).length;
+  document.getElementById('headerScoreVal').textContent = `${c}/${results.length}`;
+}
+
 // ─── PROGRESS STORAGE ────────────────────────────────────────────────────────
 async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
   // Lokaal altijd opslaan als fallback
