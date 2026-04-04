@@ -938,9 +938,11 @@ async function loadNextQuestion() {
 
   const gebruikteTypen = session.questions.map(q => q.vraagtype || '').filter(Boolean);
   const beschikbaar = topicVraagtypen[selectedTopic].filter(t => !gebruikteTypen.includes(t));
-  const vraagtype = beschikbaar.length > 0
-    ? beschikbaar[Math.floor(Math.random() * beschikbaar.length)]
-    : topicVraagtypen[selectedTopic][Math.floor(Math.random() * topicVraagtypen[selectedTopic].length)];
+  const kandidaten = beschikbaar.length > 0 ? beschikbaar : topicVraagtypen[selectedTopic];
+
+  // Spaced repetition — zwakste subonderwerpen eerst
+  const gesorteerd = await getZwaksteSubonderwerpen(selectedTopic, kandidaten);
+  const vraagtype = gesorteerd[0];
 
   const maxTokens = selectedTopic === 'prometheus' ? 1200 : 800;
 
@@ -1053,7 +1055,7 @@ Reageer UITSLUITEND met geldig JSON:
     });
 
     updateHeaderScore();
-    saveProgress(selectedTopic, correct, result.score);
+    saveProgress(selectedTopic, currentQuestion.vraagtype || '', correct, result.score, currentQuestion.vraag, 'code');
     document.getElementById('nextRow').style.display = 'block';
     document.getElementById('followupSection').style.display = 'block';
     document.getElementById('followupAnswer').style.display = 'none';
@@ -1216,7 +1218,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('mcCodeModelAnswer').textContent = q.model_antwoord;
     }
 
-    saveProgress('theorie_mc', correct, result.score);
+    saveProgress(selectedTopic, currentMcQuestion?.onderwerp || '', correct, result.score, q.vraag, 'mc-code');
     document.getElementById('mcCodeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -1455,7 +1457,7 @@ function selectMcAnswer(idx) {
     score: isCorrect ? 100 : 0
   });
 
-  saveProgress(selectedTopic, isCorrect, isCorrect ? 100 : 0);
+  saveProgress(selectedTopic, currentMcQuestion.onderwerp, isCorrect, isCorrect ? 100 : 0, currentMcQuestion.vraag, 'mc');
   updateHeaderScore();
   document.getElementById('mcNextRow').style.display = 'block';
   document.getElementById('mcFollowupSection').style.display = 'block';
@@ -1507,6 +1509,7 @@ function showMcResults() {
   }).join('');
 
   showScreen('results');
+  saveSessie(selectedTopic, 'mc', selectedDiff, correct, total);
 }
 
 // ─── RESULTS ─────────────────────────────────────────────────────────────────
@@ -1547,15 +1550,34 @@ function showResults() {
   }).join('');
 
   showScreen('results');
-}
-
-function updateHeaderScore() {
+  saveSessie(selectedTopic, 'code', selectedDiff, correct, total);
   const c = session.results.filter(r => r.correct).length;
   document.getElementById('headerScoreVal').textContent = `${c}/${session.results.length}`;
 }
 
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://defsbvuassnjuauokckd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZnNidnVhc3NuanVhdW9rY2tkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzY1OTksImV4cCI6MjA5MDg1MjU5OX0.aVv9gRvCXaHknzr4w0YosMdhLsO2t1dgzsdUhC7fD_Y';
+
+async function sbFetch(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(SUPABASE_URL + path, opts);
+  if (!res.ok) throw new Error('Supabase fout: ' + res.status);
+  return res.json();
+}
+
 // ─── PROGRESS STORAGE ────────────────────────────────────────────────────────
-function saveProgress(topic, correct, score) {
+async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
+  // Lokaal altijd opslaan als fallback
   const data = JSON.parse(localStorage.getItem('sre_progress') || '{}');
   if (!data[topic]) data[topic] = { total: 0, correct: 0, scores: [] };
   data[topic].total++;
@@ -1563,14 +1585,94 @@ function saveProgress(topic, correct, score) {
   data[topic].scores.push(score);
   localStorage.setItem('sre_progress', JSON.stringify(data));
   localStorage.setItem('sre_last_session', new Date().toISOString());
+
+  // Supabase opslaan
+  try {
+    // Upsert subonderwerp score
+    const bestaand = await sbFetch(
+      `/rest/v1/subonderwerp_scores?onderwerp=eq.${encodeURIComponent(topic)}&subonderwerp=eq.${encodeURIComponent(subonderwerp)}`
+    );
+
+    if (bestaand.length > 0) {
+      const rec = bestaand[0];
+      await sbFetch(`/rest/v1/subonderwerp_scores?id=eq.${rec.id}`, 'PATCH', {
+        pogingen: rec.pogingen + 1,
+        correct: rec.correct + (correct ? 1 : 0),
+        laatste_score: score,
+        laatste_keer: new Date().toISOString()
+      });
+    } else {
+      await sbFetch('/rest/v1/subonderwerp_scores', 'POST', {
+        onderwerp: topic,
+        subonderwerp: subonderwerp,
+        pogingen: 1,
+        correct: correct ? 1 : 0,
+        laatste_score: score,
+        laatste_keer: new Date().toISOString()
+      });
+    }
+
+    // Vraag resultaat opslaan
+    await sbFetch('/rest/v1/vraag_resultaten', 'POST', {
+      onderwerp: topic,
+      subonderwerp: subonderwerp,
+      vraag: (vraag || '').substring(0, 500),
+      correct,
+      score,
+      modus: modus || 'code'
+    });
+  } catch(e) {
+    console.warn('Supabase opslaan mislukt, alleen lokaal opgeslagen:', e.message);
+  }
+}
+
+async function saveSessie(onderwerp, modus, moeilijkheid, correct, totaal) {
+  try {
+    await sbFetch('/rest/v1/sessies', 'POST', {
+      onderwerp,
+      modus,
+      moeilijkheid,
+      score: correct,
+      totaal
+    });
+  } catch(e) {
+    console.warn('Sessie opslaan mislukt:', e.message);
+  }
 }
 
 function getProgress() {
   return JSON.parse(localStorage.getItem('sre_progress') || '{}');
 }
 
+// Spaced repetition: geeft zwakste subonderwerpen terug
+async function getZwaksteSubonderwerpen(topic, beschikbaar) {
+  try {
+    const scores = await sbFetch(
+      `/rest/v1/subonderwerp_scores?onderwerp=eq.${encodeURIComponent(topic)}&order=laatste_score.asc`
+    );
+
+    if (!scores.length) return beschikbaar;
+
+    // Bereken gewicht per subonderwerp — lagere score = hogere kans
+    const scoreMap = {};
+    scores.forEach(s => {
+      const pct = s.pogingen > 0 ? Math.round((s.correct / s.pogingen) * 100) : 50;
+      scoreMap[s.subonderwerp] = pct;
+    });
+
+    // Sorteer beschikbare subonderwerpen op score (slechtste eerst)
+    return [...beschikbaar].sort((a, b) => {
+      const sa = scoreMap[a] ?? 50;
+      const sb = scoreMap[b] ?? 50;
+      return sa - sb;
+    });
+  } catch(e) {
+    return beschikbaar;
+  }
+}
+
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-function renderDashboard() {
+async function renderDashboard() {
   const data = getProgress();
   const topics = Object.keys(TOPIC_LABELS);
   let totalQ = 0, totalC = 0;
@@ -1588,21 +1690,49 @@ function renderDashboard() {
   const dashTopics = document.getElementById('dashTopics');
   if (totalQ === 0) {
     dashTopics.innerHTML = '<div class="empty-state"><p>Nog geen sessies voltooid. Start je eerste sessie!</p></div>';
-    return;
-  }
-  dashTopics.innerHTML = topics.map(t => {
-    const d = data[t] || { total: 0, correct: 0 };
-    const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
-    return `<div class="topic-card">
-      <div class="topic-icon">${TOPIC_ICONS[t]}</div>
-      <div class="topic-info">
-        <div class="topic-info-name">${TOPIC_LABELS[t]}</div>
-        <div class="topic-info-bar-bg"><div class="topic-info-bar-fill" style="width:${pct}%"></div></div>
-        <div class="topic-info-stats">${d.correct}/${d.total} correct</div>
+  } else {
+    dashTopics.innerHTML = topics.map(t => {
+      const d = data[t] || { total: 0, correct: 0 };
+      const pct = d.total ? Math.round((d.correct / d.total) * 100) : 0;
+      return `<div class="topic-card" id="topiccard-${t}">
+        <div class="topic-icon">${TOPIC_ICONS[t]}</div>
+        <div class="topic-info">
+          <div class="topic-info-name">${TOPIC_LABELS[t]}</div>
+          <div class="topic-info-bar-bg"><div class="topic-info-bar-fill" style="width:${pct}%"></div></div>
+          <div class="topic-info-stats">${d.correct}/${d.total} correct</div>
+        </div>
+        <div class="topic-pct-big">${pct}%</div>
       </div>
-      <div class="topic-pct-big">${pct}%</div>
-    </div>`;
-  }).join('');
+      <div id="subonderwerpen-${t}" style="margin:-4px 0 8px 0;padding:0 1rem;"></div>`;
+    }).join('');
+  }
+
+  // Laad subonderwerp scores vanuit Supabase
+  try {
+    const scores = await sbFetch('/rest/v1/subonderwerp_scores?order=laatste_score.asc&limit=50');
+    const perTopic = {};
+    scores.forEach(s => {
+      if (!perTopic[s.onderwerp]) perTopic[s.onderwerp] = [];
+      perTopic[s.onderwerp].push(s);
+    });
+
+    Object.entries(perTopic).forEach(([topic, items]) => {
+      const el = document.getElementById(`subonderwerpen-${topic}`);
+      if (!el) return;
+      const top5 = items.slice(0, 5);
+      el.innerHTML = top5.map(s => {
+        const pct = s.pogingen > 0 ? Math.round((s.correct / s.pogingen) * 100) : 0;
+        const kleur = pct < 50 ? 'var(--danger)' : pct < 75 ? 'var(--warn)' : 'var(--success)';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-top:0.5px solid var(--border);">
+          <span style="color:var(--muted);flex:1;">${s.subonderwerp}</span>
+          <span style="color:${kleur};font-weight:500;min-width:32px;text-align:right;">${pct}%</span>
+          <span style="color:var(--muted);">${s.pogingen}x</span>
+        </div>`;
+      }).join('');
+    });
+  } catch(e) {
+    console.warn('Supabase dashboard laden mislukt:', e.message);
+  }
 }
 
 function clearData() {
@@ -1768,7 +1898,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('followupPracticeModelAnswer').textContent = currentFollowupPracticeQuestion.model_antwoord;
     }
 
-    saveProgress(lastFollowupContext.topic, correct, result.score);
+    saveProgress(lastFollowupContext.topic, lastFollowupContext.vraag, correct, result.score, currentFollowupPracticeQuestion.vraag, 'followup');
     document.getElementById('followupPracticeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
