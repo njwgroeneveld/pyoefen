@@ -63,6 +63,24 @@
   .screen { display: none; }
   .screen.active { display: block; }
 
+  /* AANBEVOLEN BLOCK */
+  .aanbevolen-block {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 2rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .aanbevolen-block:hover { background: #1e3a5c; }
+  .aanbevolen-icon { font-size: 22px; }
+  .aanbevolen-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 3px; }
+  .aanbevolen-topic { font-size: 15px; font-weight: 600; }
+  .aanbevolen-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .aanbevolen-arrow { margin-left: auto; color: var(--accent); font-size: 18px; }
+
   /* SETUP SCREEN */
   .setup-hero { margin-bottom: 2.5rem; }
   .setup-hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.5rem; }
@@ -332,6 +350,50 @@
   .mc-option.wrong { border-color: var(--danger); background: var(--danger-dim); color: var(--danger); pointer-events: none; }
   .mc-option.disabled { pointer-events: none; opacity: 0.5; }
   .mc-letter { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+
+  /* LEERPAD */
+  .leerpad-header { margin-bottom: 2rem; }
+  .leerpad-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .leerpad-header p { color: var(--muted); font-size: 14px; }
+
+  .leerpad-level {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    background: var(--surface);
+  }
+  .leerpad-level.locked { opacity: 0.45; }
+  .leerpad-level.completed { border-color: var(--success); }
+  .leerpad-level.completed .leerpad-level-naam { color: var(--success); }
+
+  .leerpad-level-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem;
+  }
+  .leerpad-level-badge { font-size: 22px; width: 36px; text-align: center; }
+  .leerpad-level-naam { font-size: 15px; font-weight: 600; }
+  .leerpad-level-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .leerpad-level-pct { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .leerpad-level.completed .leerpad-level-pct { color: var(--success); }
+
+  .leerpad-progress-bar { height: 4px; background: var(--border); border-radius: 99px; margin-bottom: 0.75rem; overflow: hidden; }
+  .leerpad-progress-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.6s ease; }
+  .leerpad-level.completed .leerpad-progress-fill { background: var(--success); }
+
+  .leerpad-topics { display: flex; flex-direction: column; gap: 6px; }
+  .leerpad-topic {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .leerpad-topic:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .leerpad-topic-locked { cursor: default; }
+  .leerpad-topic-locked:hover { border-color: var(--border); background: transparent; }
+  .leerpad-topic-pct { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .leerpad-topic-lock { font-size: 12px; opacity: 0.5; }
 </style>
 </head>
 <body>
@@ -369,6 +431,16 @@
       <div class="setup-hero">
         <h1>Python oefenen<br/>op je eigen tempo</h1>
         <p>Genereer live vragen over regex, pandas, scripting en Kubernetes — beoordeeld door Claude.</p>
+      </div>
+
+      <div id="aanbevolenBlock" style="display:none;" class="aanbevolen-block" onclick="aanbevolenSelectTopic()">
+        <div class="aanbevolen-icon" id="aanbevolenIcon">⭐</div>
+        <div>
+          <div class="aanbevolen-label">Aanbevolen voor jou</div>
+          <div class="aanbevolen-topic" id="aanbevolenTopic">–</div>
+          <div class="aanbevolen-sub" id="aanbevolenSub">–</div>
+        </div>
+        <div class="aanbevolen-arrow">→</div>
       </div>
 
       <div class="config-grid">
@@ -471,6 +543,20 @@
               <div>
                 <div class="option-label">Linux performance</div>
                 <div class="option-sub">top, vmstat, iostat, ss analyseren</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'logs')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Log analyse</div>
+                <div class="option-sub">regex, grep, journalctl, kubectl logs</div>
+              </div>
+            </label>
+            <label class="option-item" onclick="selectTopic(this,'reliability')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Reliability patterns</div>
+                <div class="option-sub">retry, circuit breaker, graceful shutdown</div>
               </div>
             </label>
           </div>
@@ -798,11 +884,21 @@
       </div>
     </div>
 
+    <!-- LEERPAD SCREEN -->
+    <div class="screen" id="screen-leerpad">
+      <div class="leerpad-header">
+        <h2>Leerpad</h2>
+        <p>Jouw voortgang per niveau</p>
+      </div>
+      <div id="leerpladNiveaus"><div class="empty-state"><p>Laden...</p></div></div>
+    </div>
+
   </main>
 
   <nav class="bottom-nav">
     <button class="nav-tab active" onclick="showScreen('setup')" id="tab-setup">Oefenen</button>
     <button class="nav-tab" onclick="showScreen('dashboard')" id="tab-dashboard">Dashboard</button>
+    <button class="nav-tab" onclick="showScreen('leerpad')" id="tab-leerpad">Leerpad</button>
   </nav>
 
 </div>
@@ -836,9 +932,20 @@ const TOPIC_LABELS = {
   dataclasses: 'Dataclasses & types',
   exceptions: 'Exception handling',
   backtesting: 'Backtesten & tijdreeksen',
-  linux_perf: 'Linux performance'
+  linux_perf: 'Linux performance',
+  logs: 'Log analyse',
+  reliability: 'Reliability patterns'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️' };
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️' };
+
+const LEERPAD_LEVELS = [
+  { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', topics: ['basics'] },
+  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', topics: ['exceptions', 'oop', 'dataclasses'] },
+  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', topics: ['sre', 'regex', 'linux', 'logs'] },
+  { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', topics: ['asyncio', 'websocket', 'pandas'] },
+  { niveau: 4, naam: 'Reliability',             emoji: '🛡️', topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
+  { niveau: 5, naam: 'ML in productie',         emoji: '📉', topics: ['backtesting'] }
+];
 
 // ─── TOPIC DATA (globaal — gebruikt door loadNextQuestion en buildSessionPlan) ──
 const topicContexts = {
@@ -855,7 +962,9 @@ const topicContexts = {
   dataclasses: 'Python dataclasses en type systeem: @dataclass decorator, field() met defaults/factories, frozen dataclasses, __post_init__, TypedDict, Protocol voor structural subtyping, NamedTuple vs dataclass, type alias, Optional/Union/Literal uit typing. Context: modelleren van orders, positions, market events en configuraties in een typeveilige manier voor trading systemen.',
   exceptions: 'Python exception handling: custom exception klassen met hiërarchie, raise from voor chaining, contextlib.suppress, ExceptionGroup (Python 3.11+), retry decorators, circuit breaker patroon, logging van exceptions met traceback, asserties vs exceptions in productie. Context: foutafhandeling in exchange verbindingen, order rejection handling, API timeouts, gedeeltelijk gefaalde batch operaties.',
   backtesting: 'Backtesten en tijdreeksanalyse in Python: OHLCV data verwerken met Pandas, rolling window berekeningen (rolling().mean()/std()), momentum signalen, positiebeheer in een backtest loop, slippage en transactiekosten modelleren, performance metrics (Sharpe ratio, max drawdown, win rate). Context: eenvoudige backtests van trading strategieën op historische exchange data.',
-  linux_perf: 'Linux performance analyse: lezen en interpreteren van output van top, htop, vmstat, iostat, sar, ss, free, dmesg, perf stat. GEEN code schrijven — de kandidaat krijgt realistische terminal output en moet analyseren wat er aan de hand is, wat de bottleneck is, en wat de volgende stap zou zijn. Context: troubleshooting van performance problemen in trading systemen, CPU throttling, memory pressure, netwerk congestie, disk I/O bottlenecks.'
+  linux_perf: 'Linux performance analyse: lezen en interpreteren van output van top, htop, vmstat, iostat, sar, ss, free, dmesg, perf stat. GEEN code schrijven — de kandidaat krijgt realistische terminal output en moet analyseren wat er aan de hand is, wat de bottleneck is, en wat de volgende stap zou zijn. Context: troubleshooting van performance problemen in trading systemen, CPU throttling, memory pressure, netwerk congestie, disk I/O bottlenecks.',
+  logs: 'Log analyse voor een Trading Reliability Engineer: logregels parsen met Python en regex, grep/awk/sed aanroepen via subprocess, journalctl en kubectl logs gebruiken, ERROR patronen detecteren in trading systeem logs zoals trader.py en exchange.py, tijdstempels vergelijken, anomalieën vinden in hoge volumes aan logberichten.',
+  reliability: 'Reliability patterns voor een Trading Reliability Engineer: retry logic met exponential backoff, circuit breaker patroon, dead man\'s switch, graceful shutdown, health checks, timeout afhandeling, fallback strategieën, rate limiting, bulkhead patroon. Alles in de context van trading systemen zoals exchange connecties, order routers en marktdata feeds.'
 };
 
 const topicVraagtypen = {
@@ -872,7 +981,9 @@ const topicVraagtypen = {
   dataclasses: ['basis dataclass aanmaken', 'frozen dataclass', 'field() met factory default', '__post_init__ validatie', 'TypedDict definiëren', 'Protocol implementeren', 'NamedTuple vs dataclass vergelijken', 'Optional en Union type hints', 'Literal type gebruiken', 'dataclass inheritance'],
   exceptions: ['custom exception klasse', 'exception hiërarchie opbouwen', 'raise from exception chaining', 'contextlib.suppress gebruiken', 'retry decorator met exceptions', 'circuit breaker patroon', 'exception logging met traceback', 'ExceptionGroup afhandelen', 'cleanup in finally block', 'exception in async context'],
   backtesting: ['OHLCV data laden en inspecteren', 'rolling moving average berekenen', 'momentum signaal genereren', 'positie bijhouden in backtest loop', 'transactiekosten verrekenen', 'Sharpe ratio berekenen', 'max drawdown berekenen', 'win rate en profit factor', 'equity curve berekenen', 'out-of-sample test splitsen'],
-  linux_perf: ['top output interpreteren: CPU steal vs wait', 'vmstat output interpreteren: swapping detecteren', 'iostat output interpreteren: disk saturation', 'ss output interpreteren: TIME_WAIT storm', 'free output interpreteren: memory pressure', 'load average interpreteren: overloaded systeem', 'CPU throttling detecteren in top/cgroups', 'network buffer backpressure herkennen', 'OOM killer activiteit in dmesg herkennen', 'perf stat output voor context switches interpreteren']
+  linux_perf: ['top output interpreteren: CPU steal vs wait', 'vmstat output interpreteren: swapping detecteren', 'iostat output interpreteren: disk saturation', 'ss output interpreteren: TIME_WAIT storm', 'free output interpreteren: memory pressure', 'load average interpreteren: overloaded systeem', 'CPU throttling detecteren in top/cgroups', 'network buffer backpressure herkennen', 'OOM killer activiteit in dmesg herkennen', 'perf stat output voor context switches interpreteren'],
+  logs: ['logregels parsen met regex', 'grep en awk vanuit Python aanroepen via subprocess', 'journalctl filters gebruiken', 'Kubernetes pod logs ophalen met kubectl', 'structured vs unstructured logs herkennen', 'ERROR en WARN patronen detecteren in trading logs', 'tijdstempels extraheren uit logregels', 'stacktraces parsen uit logbestanden', 'anomalieën detecteren in grote logbestanden', 'meerdere logbestanden combineren en vergelijken'],
+  reliability: ['retry met exponential backoff schrijven', 'circuit breaker implementeren', 'dead man\'s switch bouwen', 'graceful shutdown afhandelen', 'health check endpoint maken', 'timeout correct instellen', 'fallback strategie implementeren', 'rate limiter schrijven', 'bulkhead patroon toepassen', 'verbindingsfout detecteren en herstellen']
 };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -932,6 +1043,8 @@ function showScreen(name) {
   const tab = document.getElementById('tab-' + name);
   if (tab) tab.classList.add('active');
   if (name === 'dashboard') renderDashboard();
+  if (name === 'leerpad') renderLeerpad();
+  if (name === 'setup') renderAanbevolen();
 }
 
 // ─── SELECTION HELPERS ───────────────────────────────────────────────────────
@@ -1595,6 +1708,30 @@ const mcOnderwerpenPerTopic = {
     'OOM killer: hoe herken je het in dmesg/journalctl',
     'Context switches in perf stat: wanneer is het te veel',
     'Network retransmits: wat veroorzaakt het en hoe detecteer je het'
+  ],
+  logs: [
+    'regex groepen: wanneer gebruik je (?P<name>...) vs gewone groepen',
+    'subprocess.run vs subprocess.Popen: wanneer gebruik je welke',
+    'journalctl -u: hoe filter je op unit en tijdsbereik',
+    'kubectl logs --since en --tail: wanneer gebruik je welke flag',
+    'structured logging: wat is het voordeel van JSON logs boven plaintext',
+    'log levels: wanneer gebruik je ERROR vs CRITICAL vs WARNING',
+    'tijdstempel formaten: ISO 8601 vs epoch vs syslog formaat',
+    'stacktrace in logs: hoe herken je het begin en einde',
+    'log rotatie: wat is logrotate en waarom is het belangrijk',
+    'meerdere logbestanden: hoe combineer je ze gesorteerd op tijdstempel'
+  ],
+  reliability: [
+    'Wat is exponential backoff en waarom gebruik je het',
+    'Verschil tussen retry en circuit breaker',
+    'Wat doet een dead man\'s switch',
+    'Hoe implementeer je graceful shutdown in Python',
+    'Verschil tussen liveness en readiness check',
+    'Wat is een bulkhead patroon',
+    'Wanneer gebruik je een fallback strategie',
+    'Hoe voorkom je een retry storm',
+    'Wat is jitter in retry logic',
+    'Verschil tussen timeout en deadline'
   ]
 };
 
@@ -1983,6 +2120,157 @@ async function getZwaksteSubonderwerpen(topic, beschikbaar) {
   } catch(e) {
     return beschikbaar;
   }
+}
+
+// ─── AANBEVOLEN ──────────────────────────────────────────────────────────────
+let _aanbevolenTopic = null;
+
+async function renderAanbevolen() {
+  let niveauData = [];
+  try {
+    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,niveau');
+  } catch(e) { return; }
+
+  // Aggregate per topic
+  const topicStats = {};
+  for (const row of niveauData) {
+    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0 };
+    topicStats[row.onderwerp].sum += (row.niveau || 0);
+    topicStats[row.onderwerp].count++;
+  }
+
+  function topicPct(t) {
+    const s = topicStats[t];
+    if (!s || s.count === 0) return 0;
+    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
+  }
+  function levelPct(topics) {
+    return Math.round(topics.reduce((a, t) => a + topicPct(t), 0) / topics.length);
+  }
+
+  // Find the lowest unlocked, not-yet-completed level
+  let activeLevelTopics = null;
+  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
+    const unlocked = i === 0 || levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
+    if (!unlocked) break;
+    if (levelPct(LEERPAD_LEVELS[i].topics) < 80) {
+      activeLevelTopics = LEERPAD_LEVELS[i].topics;
+      break;
+    }
+  }
+
+  if (!activeLevelTopics) return; // all levels complete
+
+  // Find the topic with the lowest % in that level
+  let lowestTopic = activeLevelTopics[0];
+  let lowestPct = topicPct(lowestTopic);
+  for (const t of activeLevelTopics) {
+    const p = topicPct(t);
+    if (p < lowestPct) { lowestPct = p; lowestTopic = t; }
+  }
+
+  _aanbevolenTopic = lowestTopic;
+  document.getElementById('aanbevolenIcon').textContent = TOPIC_ICONS[lowestTopic] || '⭐';
+  document.getElementById('aanbevolenTopic').textContent = TOPIC_LABELS[lowestTopic];
+  document.getElementById('aanbevolenSub').textContent = `Voortgang: ${lowestPct}% · klik om te starten`;
+  document.getElementById('aanbevolenBlock').style.display = 'flex';
+}
+
+function aanbevolenSelectTopic() {
+  if (!_aanbevolenTopic) return;
+  document.querySelectorAll('#topicList .option-item').forEach(item => {
+    const oc = item.getAttribute('onclick') || '';
+    item.classList.toggle('selected', oc.includes(`'${_aanbevolenTopic}'`));
+  });
+  selectedTopic = _aanbevolenTopic;
+  // scroll down to the start button
+  document.getElementById('startBtn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ─── LEERPAD ─────────────────────────────────────────────────────────────────
+async function renderLeerpad() {
+  const container = document.getElementById('leerpladNiveaus');
+  container.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0;">Laden...</p>';
+
+  let niveauData = [];
+  try {
+    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,subonderwerp,niveau,doorgestroomd');
+  } catch(e) { niveauData = []; }
+
+  // Aggregate per topic: sum of niveau, count of subonderwerpen, doorgestroomd count
+  const topicStats = {};
+  for (const row of niveauData) {
+    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0, doorgestroomd: 0 };
+    topicStats[row.onderwerp].sum += (row.niveau || 0);
+    topicStats[row.onderwerp].count++;
+    if (row.doorgestroomd) topicStats[row.onderwerp].doorgestroomd++;
+  }
+
+  // Progress per topic: percentage 0-100 based on average niveau/5
+  function topicPct(t) {
+    const s = topicStats[t];
+    if (!s || s.count === 0) return 0;
+    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
+  }
+
+  // Level progress: average topic pct for all topics in level
+  function levelPct(topics) {
+    const sum = topics.reduce((a, t) => a + topicPct(t), 0);
+    return Math.round(sum / topics.length);
+  }
+
+  // Level unlocked if previous level has >= 30% progress
+  function isUnlocked(i) {
+    if (i === 0) return true;
+    return levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
+  }
+
+  let html = '';
+  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
+    const lvl = LEERPAD_LEVELS[i];
+    const unlocked = isUnlocked(i);
+    const pct = levelPct(lvl.topics);
+    const completed = pct >= 80;
+    const stateClass = !unlocked ? 'locked' : completed ? 'completed' : '';
+
+    html += `<div class="leerpad-level ${stateClass}">
+      <div class="leerpad-level-header">
+        <div class="leerpad-level-badge">${unlocked ? lvl.emoji : '🔒'}</div>
+        <div style="flex:1">
+          <div class="leerpad-level-naam">${lvl.naam}</div>
+          <div class="leerpad-level-sub">Niveau ${lvl.niveau}</div>
+        </div>
+        ${unlocked ? `<div class="leerpad-level-pct">${pct}%</div>` : ''}
+      </div>
+      ${unlocked ? `<div class="leerpad-progress-bar"><div class="leerpad-progress-fill" style="width:${pct}%"></div></div>` : ''}
+      <div class="leerpad-topics">
+        ${lvl.topics.map(t => {
+          const p = topicPct(t);
+          if (!unlocked) {
+            return `<div class="leerpad-topic leerpad-topic-locked">
+              <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
+              <span class="leerpad-topic-lock">🔒</span>
+            </div>`;
+          }
+          return `<div class="leerpad-topic" onclick="leerpladSelectTopic('${t}')">
+            <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
+            <span class="leerpad-topic-pct">${p}%</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function leerpladSelectTopic(topic) {
+  document.querySelectorAll('#topicList .option-item').forEach(item => {
+    const oc = item.getAttribute('onclick') || '';
+    item.classList.toggle('selected', oc.includes(`'${topic}'`));
+  });
+  selectedTopic = topic;
+  showScreen('setup');
 }
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
