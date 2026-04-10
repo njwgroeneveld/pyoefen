@@ -826,8 +826,56 @@
         </div>
       </div>
 
-      <div id="nextRow" style="margin-top:1rem;display:none">
+      <div id="nextRow" style="margin-top:1rem;display:none;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="primary" onclick="nextQuestion()">Volgende vraag →</button>
+        <button onclick="startWaaromPatroon()" style="background:var(--surface2);border-color:var(--warn);color:var(--warn);">Waarom dit patroon? →</button>
+      </div>
+    </div>
+
+    <!-- WAAROM DIT PATROON SCREEN -->
+    <div class="screen" id="screen-waarom">
+      <div class="q-header">
+        <div class="q-meta">
+          <span class="badge badge-topic" id="waaromTopic"></span>
+          <span class="badge" id="waaromDiff"></span>
+          <span class="badge" style="background:var(--warn-dim);border:1px solid var(--warn);color:var(--warn);">waarom?</span>
+        </div>
+        <button class="ghost" style="font-size:13px;padding:4px 10px;" onclick="showScreen('question')">← Terug</button>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:13px;color:var(--muted);line-height:1.5;">
+        🤔 Theorie over: <span id="waaromConcept" style="color:var(--text);font-weight:500;"></span>
+      </div>
+
+      <div class="question-box">
+        <div class="question-title">Vraag</div>
+        <div class="question-text" id="waaromQuestionText">Laden...</div>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-label">Jouw antwoord</div>
+        <textarea class="code-answer" id="waaromAnswerInput" placeholder="Beschrijf waarom dit patroon hier de juiste keuze is..." style="min-height:120px;font-family:'Syne',sans-serif;"></textarea>
+      </div>
+
+      <div class="action-row">
+        <button class="primary" id="waaromSubmitBtn" onclick="submitWaaromPatroon()">Controleer antwoord</button>
+      </div>
+
+      <div class="feedback-box" id="waaromFeedbackBox">
+        <div class="feedback-title" id="waaromFeedbackTitle"></div>
+        <div class="feedback-text" id="waaromFeedbackText"></div>
+        <div id="waaromKernpunten" style="display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <div class="feedback-model-label">Kernpunten</div>
+          <div id="waaromKernpuntenList" style="margin-top:6px;font-size:13px;color:var(--muted);line-height:1.8;"></div>
+        </div>
+        <div class="feedback-model" id="waaromVoorbeeldModel" style="display:none">
+          <div class="feedback-model-label">Wat een goed antwoord bevat</div>
+          <div class="code-block" id="waaromVoorbeeldantwoord" style="font-family:'Syne',sans-serif;white-space:pre-wrap;"></div>
+        </div>
+      </div>
+
+      <div id="waaromNextRow" style="margin-top:1rem;display:none;">
+        <button class="primary" onclick="showScreen('question')">Terug naar sessie →</button>
       </div>
     </div>
 
@@ -2563,6 +2611,128 @@ function showFollowupHint() {
   const hintBox = document.getElementById('followupPracticeHintBox');
   hintBox.className = 'hint-box show';
   hintBox.textContent = '💡 ' + currentFollowupPracticeQuestion.hints[0];
+}
+
+// ─── WAAROM DIT PATROON ───────────────────────────────────────────────────────
+let currentWaaromQuestion = null;
+
+async function startWaaromPatroon() {
+  if (!currentQuestion) return;
+
+  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
+  document.getElementById('waaromTopic').textContent = TOPIC_LABELS[selectedTopic];
+  const diffEl = document.getElementById('waaromDiff');
+  diffEl.className = 'badge ' + diffClass;
+  diffEl.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
+  document.getElementById('waaromConcept').textContent = 'Laden...';
+  document.getElementById('waaromQuestionText').textContent = 'Vraag genereren...';
+  document.getElementById('waaromAnswerInput').value = '';
+  document.getElementById('waaromFeedbackBox').className = 'feedback-box';
+  document.getElementById('waaromKernpunten').style.display = 'none';
+  document.getElementById('waaromVoorbeeldModel').style.display = 'none';
+  document.getElementById('waaromNextRow').style.display = 'none';
+  document.getElementById('waaromSubmitBtn').disabled = false;
+  currentWaaromQuestion = null;
+
+  showScreen('waarom');
+
+  const prompt = `De kandidaat heeft zojuist deze code vraag beantwoord:
+Vraag: ${currentQuestion.vraag}
+Modelantwoord: ${currentQuestion.model_antwoord}
+
+Identificeer het belangrijkste Python patroon of concept in dit modelantwoord (bijv. yield, try/except, dataclass, async/await).
+
+Genereer een gerichte waarom-vraag over precies dat patroon in deze context.
+
+NIET: "Waarom werkt dit?"
+WEL:  "Waarom gebruik je hier yield in plaats van return?"
+WEL:  "Waarom gebruik je hier try/except in plaats van een if-check?"
+WEL:  "Waarom gebruik je hier een dataclass in plaats van een gewone dict?"
+
+De vraag moet altijd gaan over de keuze voor dit patroon versus een alternatief.
+
+Reageer UITSLUITEND met geldig JSON:
+{
+  "concept": "het geidentificeerde patroon",
+  "vraag": "de gerichte waarom-vraag in Nederlands",
+  "kernpunten": ["punt1", "punt2", "punt3"],
+  "voorbeeldantwoord": "wat een goed antwoord bevat"
+}`;
+
+  try {
+    const res = await callClaude(prompt, 600);
+    const clean = res.replace(/```json|```/g, '').trim();
+    currentWaaromQuestion = JSON.parse(clean);
+    document.getElementById('waaromConcept').textContent = currentWaaromQuestion.concept;
+    document.getElementById('waaromQuestionText').textContent = currentWaaromQuestion.vraag;
+  } catch(e) {
+    document.getElementById('waaromConcept').textContent = 'Fout';
+    document.getElementById('waaromQuestionText').textContent = 'Fout bij laden. Controleer je verbinding.';
+  }
+}
+
+async function submitWaaromPatroon() {
+  const answer = document.getElementById('waaromAnswerInput').value.trim();
+  if (!answer || !currentWaaromQuestion) return;
+
+  const fb = document.getElementById('waaromFeedbackBox');
+  fb.className = 'feedback-box loading show';
+  document.getElementById('waaromFeedbackTitle').textContent = '';
+  document.getElementById('waaromFeedbackText').innerHTML = '<span class="spinner"></span> Beoordelen...';
+  document.getElementById('waaromKernpunten').style.display = 'none';
+  document.getElementById('waaromVoorbeeldModel').style.display = 'none';
+  document.getElementById('waaromSubmitBtn').disabled = true;
+
+  const prompt = `Beoordeel het antwoord van een kandidaat op een theoretische waarom-vraag.
+
+Concept: ${currentWaaromQuestion.concept}
+Vraag: ${currentWaaromQuestion.vraag}
+
+Kernpunten van een goed antwoord:
+${currentWaaromQuestion.kernpunten.map((k, i) => `${i + 1}. ${k}`).join('\n')}
+
+Voorbeeldantwoord (intern):
+${currentWaaromQuestion.voorbeeldantwoord}
+
+Antwoord van de kandidaat:
+${answer}
+
+Beoordeel op begrip van het patroon en de motivatie voor de keuze versus alternatieven.
+
+Reageer UITSLUITEND met geldig JSON:
+{
+  "correct": true of false,
+  "score": getal 0-100,
+  "feedback": "2-4 zinnen feedback in het Nederlands over het begrip van het patroon en de keuze",
+  "toon_model": true of false
+}`;
+
+  try {
+    const res = await callClaude(prompt, 400);
+    const clean = res.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    const correct = result.correct || result.score >= 70;
+
+    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
+    document.getElementById('waaromFeedbackTitle').textContent = correct ? '✓ Goed begrip!' : '✗ Niet volledig';
+    document.getElementById('waaromFeedbackText').textContent = result.feedback;
+
+    document.getElementById('waaromKernpunten').style.display = 'block';
+    document.getElementById('waaromKernpuntenList').innerHTML = currentWaaromQuestion.kernpunten
+      .map(k => `<div>• ${k}</div>`).join('');
+
+    if (result.toon_model || !correct) {
+      document.getElementById('waaromVoorbeeldModel').style.display = 'block';
+      document.getElementById('waaromVoorbeeldantwoord').textContent = currentWaaromQuestion.voorbeeldantwoord;
+    }
+
+    saveProgress(selectedTopic, currentWaaromQuestion.concept, correct, result.score, currentWaaromQuestion.vraag, 'theorie-code');
+    document.getElementById('waaromNextRow').style.display = 'block';
+  } catch(e) {
+    fb.className = 'feedback-box show incorrect';
+    document.getElementById('waaromFeedbackTitle').textContent = 'Fout bij beoordelen.';
+    document.getElementById('waaromSubmitBtn').disabled = false;
+  }
 }
 
 // ─── CLAUDE API ──────────────────────────────────────────────────────────────
