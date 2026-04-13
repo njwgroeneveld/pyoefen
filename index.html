@@ -63,24 +63,6 @@
   .screen { display: none; }
   .screen.active { display: block; }
 
-  /* AANBEVOLEN BLOCK */
-  .aanbevolen-block {
-    display: flex; align-items: center; gap: 14px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 2rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .aanbevolen-block:hover { background: #1e3a5c; }
-  .aanbevolen-icon { font-size: 22px; }
-  .aanbevolen-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 3px; }
-  .aanbevolen-topic { font-size: 15px; font-weight: 600; }
-  .aanbevolen-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .aanbevolen-arrow { margin-left: auto; color: var(--accent); font-size: 18px; }
-
   /* SETUP SCREEN */
   .setup-hero { margin-bottom: 2.5rem; }
   .setup-hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.5rem; }
@@ -350,50 +332,6 @@
   .mc-option.wrong { border-color: var(--danger); background: var(--danger-dim); color: var(--danger); pointer-events: none; }
   .mc-option.disabled { pointer-events: none; opacity: 0.5; }
   .mc-letter { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
-
-  /* LEERPAD */
-  .leerpad-header { margin-bottom: 2rem; }
-  .leerpad-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-  .leerpad-header p { color: var(--muted); font-size: 14px; }
-
-  .leerpad-level {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    background: var(--surface);
-  }
-  .leerpad-level.locked { opacity: 0.45; }
-  .leerpad-level.completed { border-color: var(--success); }
-  .leerpad-level.completed .leerpad-level-naam { color: var(--success); }
-
-  .leerpad-level-header {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem;
-  }
-  .leerpad-level-badge { font-size: 22px; width: 36px; text-align: center; }
-  .leerpad-level-naam { font-size: 15px; font-weight: 600; }
-  .leerpad-level-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .leerpad-level-pct { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent); }
-  .leerpad-level.completed .leerpad-level-pct { color: var(--success); }
-
-  .leerpad-progress-bar { height: 4px; background: var(--border); border-radius: 99px; margin-bottom: 0.75rem; overflow: hidden; }
-  .leerpad-progress-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.6s ease; }
-  .leerpad-level.completed .leerpad-progress-fill { background: var(--success); }
-
-  .leerpad-topics { display: flex; flex-direction: column; gap: 6px; }
-  .leerpad-topic {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 13px; cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .leerpad-topic:hover { border-color: var(--accent); background: var(--accent-dim); }
-  .leerpad-topic-locked { cursor: default; }
-  .leerpad-topic-locked:hover { border-color: var(--border); background: transparent; }
-  .leerpad-topic-pct { font-size: 12px; color: var(--muted); font-weight: 600; }
-  .leerpad-topic-lock { font-size: 12px; opacity: 0.5; }
 </style>
 </head>
 <body>
@@ -431,16 +369,6 @@
       <div class="setup-hero">
         <h1>Python oefenen<br/>op je eigen tempo</h1>
         <p>Genereer live vragen over regex, pandas, scripting en Kubernetes — beoordeeld door Claude.</p>
-      </div>
-
-      <div id="aanbevolenBlock" style="display:none;" class="aanbevolen-block" onclick="aanbevolenSelectTopic()">
-        <div class="aanbevolen-icon" id="aanbevolenIcon">⭐</div>
-        <div>
-          <div class="aanbevolen-label">Aanbevolen voor jou</div>
-          <div class="aanbevolen-topic" id="aanbevolenTopic">–</div>
-          <div class="aanbevolen-sub" id="aanbevolenSub">–</div>
-        </div>
-        <div class="aanbevolen-arrow">→</div>
       </div>
 
       <div class="config-grid">
@@ -496,67 +424,18 @@
                 <div class="option-sub">processes, netwerk, logs, tools</div>
               </div>
             </label>
+            <label class="option-item" onclick="selectTopic(this,'numpy')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">NumPy</div>
+                <div class="option-sub">arrays, statistieken, correlaties</div>
+              </div>
+            </label>
             <label class="option-item" onclick="selectTopic(this,'prometheus')">
               <div class="option-dot"></div>
               <div>
                 <div class="option-label">Prometheus analyse</div>
                 <div class="option-sub">JSON → NumPy → Pandas pipeline</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'asyncio')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Asyncio & sockets</div>
-                <div class="option-sub">async/await, event loop, TCP</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'websocket')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">WebSocket patronen</div>
-                <div class="option-sub">verbindingen, reconnect, berichten</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'dataclasses')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Dataclasses & types</div>
-                <div class="option-sub">@dataclass, TypedDict, Protocol</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'exceptions')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Exception handling</div>
-                <div class="option-sub">custom exceptions, context, chaining</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'backtesting')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Backtesten & tijdreeksen</div>
-                <div class="option-sub">OHLCV, signalen, rolling window</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'linux_perf')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Linux performance</div>
-                <div class="option-sub">top, vmstat, iostat, ss analyseren</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'logs')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Log analyse</div>
-                <div class="option-sub">regex, grep, journalctl, kubectl logs</div>
-              </div>
-            </label>
-            <label class="option-item" onclick="selectTopic(this,'reliability')">
-              <div class="option-dot"></div>
-              <div>
-                <div class="option-label">Reliability patterns</div>
-                <div class="option-sub">retry, circuit breaker, graceful shutdown</div>
               </div>
             </label>
           </div>
@@ -785,8 +664,6 @@
         <div class="progress-fill" id="progressFill" style="width:0%"></div>
       </div>
 
-      <div id="sessionInfoBar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;margin-bottom:1rem;font-size:12px;color:var(--muted);line-height:1.5;"></div>
-
       <div class="question-box">
         <div class="question-title">Opdracht</div>
         <div class="question-text" id="questionText">Laden...</div>
@@ -826,56 +703,8 @@
         </div>
       </div>
 
-      <div id="nextRow" style="margin-top:1rem;display:none;display:flex;gap:8px;flex-wrap:wrap;">
+      <div id="nextRow" style="margin-top:1rem;display:none">
         <button class="primary" onclick="nextQuestion()">Volgende vraag →</button>
-        <button onclick="startWaaromPatroon()" style="background:var(--surface2);border-color:var(--warn);color:var(--warn);">Waarom dit patroon? →</button>
-      </div>
-    </div>
-
-    <!-- WAAROM DIT PATROON SCREEN -->
-    <div class="screen" id="screen-waarom">
-      <div class="q-header">
-        <div class="q-meta">
-          <span class="badge badge-topic" id="waaromTopic"></span>
-          <span class="badge" id="waaromDiff"></span>
-          <span class="badge" style="background:var(--warn-dim);border:1px solid var(--warn);color:var(--warn);">waarom?</span>
-        </div>
-        <button class="ghost" style="font-size:13px;padding:4px 10px;" onclick="showScreen('question')">← Terug</button>
-      </div>
-
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:1rem;font-size:13px;color:var(--muted);line-height:1.5;">
-        🤔 Theorie over: <span id="waaromConcept" style="color:var(--text);font-weight:500;"></span>
-      </div>
-
-      <div class="question-box">
-        <div class="question-title">Vraag</div>
-        <div class="question-text" id="waaromQuestionText">Laden...</div>
-      </div>
-
-      <div class="answer-section">
-        <div class="answer-label">Jouw antwoord</div>
-        <textarea class="code-answer" id="waaromAnswerInput" placeholder="Beschrijf waarom dit patroon hier de juiste keuze is..." style="min-height:120px;font-family:'Syne',sans-serif;"></textarea>
-      </div>
-
-      <div class="action-row">
-        <button class="primary" id="waaromSubmitBtn" onclick="submitWaaromPatroon()">Controleer antwoord</button>
-      </div>
-
-      <div class="feedback-box" id="waaromFeedbackBox">
-        <div class="feedback-title" id="waaromFeedbackTitle"></div>
-        <div class="feedback-text" id="waaromFeedbackText"></div>
-        <div id="waaromKernpunten" style="display:none;margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
-          <div class="feedback-model-label">Kernpunten</div>
-          <div id="waaromKernpuntenList" style="margin-top:6px;font-size:13px;color:var(--muted);line-height:1.8;"></div>
-        </div>
-        <div class="feedback-model" id="waaromVoorbeeldModel" style="display:none">
-          <div class="feedback-model-label">Wat een goed antwoord bevat</div>
-          <div class="code-block" id="waaromVoorbeeldantwoord" style="font-family:'Syne',sans-serif;white-space:pre-wrap;"></div>
-        </div>
-      </div>
-
-      <div id="waaromNextRow" style="margin-top:1rem;display:none;">
-        <button class="primary" onclick="showScreen('question')">Terug naar sessie →</button>
       </div>
     </div>
 
@@ -915,11 +744,6 @@
 
       <div class="stats-grid" id="dashStats"></div>
 
-      <div style="margin-bottom:2rem;">
-        <h3 style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;">Vandaag te herhalen</h3>
-        <div id="dashVandaagHerhalen"><div class="empty-state"><p>Laden...</p></div></div>
-      </div>
-
       <div class="dash-topics">
         <h3>Per onderwerp</h3>
         <div id="dashTopics"></div>
@@ -932,21 +756,11 @@
       </div>
     </div>
 
-    <!-- LEERPAD SCREEN -->
-    <div class="screen" id="screen-leerpad">
-      <div class="leerpad-header">
-        <h2>Leerpad</h2>
-        <p>Jouw voortgang per niveau</p>
-      </div>
-      <div id="leerpladNiveaus"><div class="empty-state"><p>Laden...</p></div></div>
-    </div>
-
   </main>
 
   <nav class="bottom-nav">
     <button class="nav-tab active" onclick="showScreen('setup')" id="tab-setup">Oefenen</button>
     <button class="nav-tab" onclick="showScreen('dashboard')" id="tab-dashboard">Dashboard</button>
-    <button class="nav-tab" onclick="showScreen('leerpad')" id="tab-leerpad">Leerpad</button>
   </nav>
 
 </div>
@@ -964,7 +778,6 @@ let currentQuestion = null;
 let hintUsed = false;
 let mcSession = { current: 0, results: [] };
 let currentMcQuestion = null;
-let sessionPlan = []; // [{ subonderwerp: string, isHerhaling: boolean }]
 
 const TOPIC_LABELS = {
   regex: 'Regex',
@@ -974,65 +787,10 @@ const TOPIC_LABELS = {
   oop: 'OOP',
   basics: 'Python basics',
   linux: 'Linux',
-  prometheus: 'Prometheus analyse',
-  asyncio: 'Asyncio & sockets',
-  websocket: 'WebSocket patronen',
-  dataclasses: 'Dataclasses & types',
-  exceptions: 'Exception handling',
-  backtesting: 'Backtesten & tijdreeksen',
-  linux_perf: 'Linux performance',
-  logs: 'Log analyse',
-  reliability: 'Reliability patterns'
+  numpy: 'NumPy',
+  prometheus: 'Prometheus analyse'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️' };
-
-const LEERPAD_LEVELS = [
-  { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', topics: ['basics'] },
-  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', topics: ['exceptions', 'oop', 'dataclasses'] },
-  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', topics: ['sre', 'regex', 'linux', 'logs'] },
-  { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', topics: ['asyncio', 'websocket', 'pandas'] },
-  { niveau: 4, naam: 'Reliability',             emoji: '🛡️', topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
-  { niveau: 5, naam: 'ML in productie',         emoji: '📉', topics: ['backtesting'] }
-];
-
-// ─── TOPIC DATA (globaal — gebruikt door loadNextQuestion en buildSessionPlan) ──
-const topicContexts = {
-  regex: 'Python re module: re.match, re.search, re.findall, re.sub, named groups, lookaheads. Context: parsen van trading logs, order ID patronen, exchange feed berichten, trade timestamps, service namen, foutmeldingen uit matching engines.\nGEBRUIK WEL: re.match, re.search, re.findall, re.sub, groups, named groups, flags\nGEBRUIK NIET: asyncio, pandas, klassen',
-  pandas: 'Python pandas én NumPy: DataFrames, Series, groupby, merge, pivot, resample, str accessor, apply, query(). NumPy: arrays, broadcasting, np.mean/std/percentile (p50/p95/p99), np.corrcoef, np.polyfit, np.diff, np.where, np.argsort. Context: latency analyse van trade uitvoering, order flow data verwerken, performance vergelijking tussen exchange sessies, detecteren van anomalieën in handelsdata.\nGEBRUIK WEL: DataFrame, Series, groupby, merge, query, resample, rolling, apply\nGEBRUIK NIET: ML, scikit-learn, websockets',
-  sre: 'Python scripting: subprocess, os, sys, logging, retry logic, exponential backoff, file I/O, argparse, threading basics. Context: reliability scripts voor trading systemen, health checks op exchange verbindingen, alerting tools, automatisch herstarten van falende services, release scripts.\nGEBRUIK WEL: subprocess, os, sys, json, requests, argparse, logging, environment variables\nGEBRUIK NIET: asyncio, pandas, websockets',
-  kubernetes: 'Kubernetes concepten en Python kubernetes-client: pods, deployments, services, namespaces, resource requests/limits, kubectl equivalenten in Python. Context: beheren van trading applicaties zoals order routers en exchange connectors in een k8s cluster, bewaken van pod stabiliteit tijdens market hours.\nGEBRUIK WEL: kubernetes Python client, pods, deployments, namespaces, labels, logs ophalen\nGEBRUIK NIET: ML, scikit-learn',
-  oop: 'Python OOP: klassen, __init__, instance/class/static methods, inheritance, super(), abstracte klassen, dataclasses, properties, dunder methods (__str__, __repr__, __eq__), decorators (@property, @classmethod). Context: modelleren van trading componenten zoals orders, positions, exchange connecties en monitoring tools.\nGEBRUIK WEL: klassen, __init__, self, methoden, inheritance, super(), dunder methods\nGEBRUIK NIET: asyncio, requests, pandas, decorators',
-  basics: 'Python basisvaardigheden: functies, loops, if/else, lijsten, dicts, strings, f-strings, rekenoperaties, print. Context: verwerken van trade berichten, configuratie bestanden en API responses in een trading omgeving.\nGEBRUIK WEL: functies, loops, if/else, lijsten, dicts, strings, f-strings, rekenoperaties, print\nGEBRUIK NIET: type hints, imports, klassen, list comprehensions, exceptions, decorators, regex',
-  linux: 'Linux systeembeheer via Python subprocess: process monitoring (ps, top, htop), log analyse (grep, awk, sed), netwerk troubleshooting (netstat, ss, tcpdump), service management (systemctl, journalctl), resource limiting (ulimit, cgroups), file permissions, debugging tools (strace, lsof), disk en memory analyse (df, free, iostat). Schrijf Python scripts die deze tools aanroepen en de output parsen. Context: troubleshooting en monitoring van trading systemen op Linux servers.\nGEBRUIK WEL: subprocess aanroepen van linux commando\'s, output parsen, os.path, shutil\nGEBRUIK NIET: asyncio, pandas, websockets',
-  prometheus: 'Prometheus API analyse pipeline: requests.get naar Prometheus HTTP API, parsen van JSON response (status/data/result/values), omzetten van tijdstempel+waarde arrays naar NumPy arrays, verder verwerken met Pandas DataFrames. Chaos scenario\'s: UDP loss, TCP retransmits, CPU throttling (container_cpu_cfs_throttled_seconds_total), memory stress (container_memory_working_set_bytes), pod errors. Bereken correlaties tussen metrics, detecteer anomalieën, vind piekperiodes. Context: jouw eigen Kubernetes cluster met trader en exchange pods.\nGEBRUIK WEL: prometheus_client, Counter, Gauge, Histogram, push_to_gateway, requests naar Prometheus API\nGEBRUIK NIET: ML, scikit-learn',
-  asyncio: 'Python asyncio: async/await syntax, event loop, asyncio.gather, asyncio.create_task, asyncio.sleep, asyncio.Queue, TCP sockets met asyncio.open_connection en asyncio.start_server. Context: asynchrone verbindingen naar trading exchanges, meerdere market data feeds tegelijk verwerken, non-blocking order submission, heartbeat loops naast data processing.\nGEBRUIK WEL: async/await, asyncio.gather, asyncio.sleep, TCP/UDP sockets, event loop\nGEBRUIK NIET: pandas, ML, scikit-learn',
-  websocket: 'WebSocket client programmering in Python: websockets library, async with websockets.connect(), ping/pong keepalive, reconnect logica met exponential backoff, message parsing, subscription flows, foutafhandeling bij disconnect. Context: verbinding met exchange WebSocket feeds (orderbook updates, trade ticks), market data consumers.\nGEBRUIK WEL: websockets library, async/await, reconnect logic, message handling\nGEBRUIK NIET: pandas, ML, scikit-learn',
-  dataclasses: 'Python dataclasses en type systeem: @dataclass decorator, field() met defaults/factories, frozen dataclasses, __post_init__, TypedDict, Protocol voor structural subtyping, NamedTuple vs dataclass, type alias, Optional/Union/Literal uit typing. Context: modelleren van orders, positions, market events en configuraties in een typeveilige manier voor trading systemen.\nGEBRUIK WEL: @dataclass, type hints, List/Dict/Optional, field(), __post_init__\nGEBRUIK NIET: asyncio, requests, pandas',
-  exceptions: 'Python exception handling: custom exception klassen met hiërarchie, raise from voor chaining, contextlib.suppress, ExceptionGroup (Python 3.11+), retry decorators, circuit breaker patroon, logging van exceptions met traceback, asserties vs exceptions in productie. Context: foutafhandeling in exchange verbindingen, order rejection handling, API timeouts, gedeeltelijk gefaalde batch operaties.\nGEBRUIK WEL: try/except/finally, raise, custom exceptions, functies, loops, dicts\nGEBRUIK NIET: asyncio, requests, pandas, decorators',
-  backtesting: 'Backtesten en tijdreeksanalyse in Python: OHLCV data verwerken met Pandas, rolling window berekeningen (rolling().mean()/std()), momentum signalen, positiebeheer in een backtest loop, slippage en transactiekosten modelleren, performance metrics (Sharpe ratio, max drawdown, win rate). Context: eenvoudige backtests van trading strategieën op historische exchange data.\nGEBRUIK WEL: alles inclusief pandas, numpy, scikit-learn, feature engineering, backtesten\nGEBRUIK NIET: niets verboden',
-  linux_perf: 'Linux performance analyse: lezen en interpreteren van output van top, htop, vmstat, iostat, sar, ss, free, dmesg, perf stat. GEEN code schrijven — de kandidaat krijgt realistische terminal output en moet analyseren wat er aan de hand is, wat de bottleneck is, en wat de volgende stap zou zijn. Context: troubleshooting van performance problemen in trading systemen, CPU throttling, memory pressure, netwerk congestie, disk I/O bottlenecks.\nGEBRUIK WEL: output interpreteren van top/vmstat/iostat/ss/free, diagnose workflow beschrijven\nGEBRUIK NIET: ML, scikit-learn, pandas',
-  logs: 'Log analyse voor een Trading Reliability Engineer: logregels parsen met Python en regex, grep/awk/sed aanroepen via subprocess, journalctl en kubectl logs gebruiken, ERROR patronen detecteren in trading systeem logs zoals trader.py en exchange.py, tijdstempels vergelijken, anomalieën vinden in hoge volumes aan logberichten.\nGEBRUIK WEL: regex voor log parsing, subprocess met grep, open() voor bestanden, journalctl via subprocess\nGEBRUIK NIET: asyncio, pandas, ML',
-  reliability: 'Reliability patterns voor een Trading Reliability Engineer: retry logic met exponential backoff, circuit breaker patroon, dead man\'s switch, graceful shutdown, health checks, timeout afhandeling, fallback strategieën, rate limiting, bulkhead patroon. Alles in de context van trading systemen zoals exchange connecties, order routers en marktdata feeds.\nGEBRUIK WEL: retry, exponential backoff, circuit breaker, timeout, graceful shutdown, health checks\nGEBRUIK NIET: ML, scikit-learn'
-};
-
-const topicVraagtypen = {
-  regex: ['IP-adres validatie', 'timestamp parsing', 'log level extractie', 'bestandsnaam matching', 'e-mailadres validatie', 'URL parsing', 'ID patroon herkenning', 'named groups', 'lookahead/lookbehind', 'substitutie met re.sub'],
-  pandas: ['groupby + aggregatie', 'query() filtering', 'merge/join van DataFrames', 'resample op tijd', 'str accessor bewerkingen', 'pivot table', 'apply met lambda', 'missing values afhandelen', 'multi-column sortering', 'value_counts analyse', 'array aanmaken en indexeren', 'boolean indexing en masking', 'np.mean en np.std berekenen', 'np.percentile voor p95/p99', 'np.corrcoef voor correlatie', 'np.diff voor tijdreeksverschillen', 'np.polyfit voor trendlijn', 'np.where voor conditionele waarden', 'np.argsort voor sortering op waarde', 'broadcasting over arrays'],
-  sre: ['retry met exponential backoff', 'subprocess aanroepen', 'logfile parsen', 'argparse CLI tool', 'file I/O met context manager', 'threading basics', 'environment variables', 'JSON config laden', 'foutafhandeling met exceptions', 'decorator schrijven'],
-  kubernetes: ['pods in namespace opvragen', 'resource usage filteren', 'deployment schalen', 'pod logs ophalen', 'service endpoints', 'namespace aanmaken', 'label selector queries', 'pod status controleren', 'configmap uitlezen', 'events opvragen'],
-  oop: ['basis klasse met __init__', 'inheritance en super()', 'abstracte basisklasse', 'dataclass aanmaken', '@property getter/setter', '@classmethod factory method', '@staticmethod utility', 'dunder __str__ en __repr__', 'meervoudige inheritance', 'mixin patroon'],
-  basics: ['list comprehension', 'dict comprehension', 'JSON lezen en schrijven', 'try/except/finally foutafhandeling', 'generator functie', 'lambda met map en filter', 'type hints toevoegen', 'context manager met with', 'f-string formatting', '*args en **kwargs gebruiken'],
-  linux: ['processen monitoren met ps/top via subprocess', 'log filteren met grep via Python', 'output van awk parsen', 'netwerk verbindingen opvragen met ss/netstat', 'service status controleren via systemctl', 'journalctl logs uitlezen', 'file permissions aanpassen via Python', 'disk gebruik analyseren met df', 'memory gebruik uitlezen met free', 'lsof gebruiken om open bestanden te vinden'],
-  prometheus: ['JSON response parsen naar arrays', 'tijdstempels omzetten naar datetime', 'CPU throttling percentage berekenen', 'memory piek detecteren in tijdreeks', 'correlatie tussen twee metrics berekenen', 'anomaliedetectie met z-score', 'p95 latency berekenen uit tijdreeks', 'UDP loss patroon analyseren', 'vergelijken van metrics voor en na chaos', 'pod met hoogste resource gebruik vinden'],
-  asyncio: ['async functie schrijven', 'asyncio.gather gebruiken', 'asyncio.Queue producent/consument', 'asyncio.create_task voor parallelle taken', 'TCP server met asyncio', 'TCP client met asyncio', 'heartbeat loop implementeren', 'asyncio timeout afhandelen', 'asyncio Event voor synchronisatie', 'semaphore voor rate limiting'],
-  websocket: ['WebSocket client verbinden', 'reconnect met exponential backoff', 'subscription message sturen', 'berichten parsen en verwerken', 'ping/pong keepalive implementeren', 'meerdere symbols subscriben', 'orderbook updates bijhouden', 'disconnect fout afhandelen', 'async context manager voor WS', 'message queue vullen vanuit WS'],
-  dataclasses: ['basis dataclass aanmaken', 'frozen dataclass', 'field() met factory default', '__post_init__ validatie', 'TypedDict definiëren', 'Protocol implementeren', 'NamedTuple vs dataclass vergelijken', 'Optional en Union type hints', 'Literal type gebruiken', 'dataclass inheritance'],
-  exceptions: ['custom exception klasse', 'exception hiërarchie opbouwen', 'raise from exception chaining', 'contextlib.suppress gebruiken', 'retry decorator met exceptions', 'circuit breaker patroon', 'exception logging met traceback', 'ExceptionGroup afhandelen', 'cleanup in finally block', 'exception in async context'],
-  backtesting: ['OHLCV data laden en inspecteren', 'rolling moving average berekenen', 'momentum signaal genereren', 'positie bijhouden in backtest loop', 'transactiekosten verrekenen', 'Sharpe ratio berekenen', 'max drawdown berekenen', 'win rate en profit factor', 'equity curve berekenen', 'out-of-sample test splitsen'],
-  linux_perf: ['top output interpreteren: CPU steal vs wait', 'vmstat output interpreteren: swapping detecteren', 'iostat output interpreteren: disk saturation', 'ss output interpreteren: TIME_WAIT storm', 'free output interpreteren: memory pressure', 'load average interpreteren: overloaded systeem', 'CPU throttling detecteren in top/cgroups', 'network buffer backpressure herkennen', 'OOM killer activiteit in dmesg herkennen', 'perf stat output voor context switches interpreteren'],
-  logs: ['logregels parsen met regex', 'grep en awk vanuit Python aanroepen via subprocess', 'journalctl filters gebruiken', 'Kubernetes pod logs ophalen met kubectl', 'structured vs unstructured logs herkennen', 'ERROR en WARN patronen detecteren in trading logs', 'tijdstempels extraheren uit logregels', 'stacktraces parsen uit logbestanden', 'anomalieën detecteren in grote logbestanden', 'meerdere logbestanden combineren en vergelijken'],
-  reliability: ['retry met exponential backoff schrijven', 'circuit breaker implementeren', 'dead man\'s switch bouwen', 'graceful shutdown afhandelen', 'health check endpoint maken', 'timeout correct instellen', 'fallback strategie implementeren', 'rate limiter schrijven', 'bulkhead patroon toepassen', 'verbindingsfout detecteren en herstellen']
-};
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', numpy: '🔢', prometheus: '📈' };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 function doLogin() {
@@ -1091,8 +849,6 @@ function showScreen(name) {
   const tab = document.getElementById('tab-' + name);
   if (tab) tab.classList.add('active');
   if (name === 'dashboard') renderDashboard();
-  if (name === 'leerpad') renderLeerpad();
-  if (name === 'setup') renderAanbevolen();
 }
 
 // ─── SELECTION HELPERS ───────────────────────────────────────────────────────
@@ -1118,55 +874,6 @@ function selectMod(el, val) {
   selectedMod = val;
 }
 
-// ─── SESSION PLANNING (spaced repetition) ────────────────────────────────────
-async function buildSessionPlan(topic) {
-  const effectiveTopic = topic === 'numpy' ? 'pandas' : topic;
-  const alleVraagtypen = topicVraagtypen[effectiveTopic] || [];
-
-  let herhalingen = [];
-  let nieuwSubonderwerp = null;
-
-  try {
-    const now = new Date().toISOString();
-    // Herhalingen: volgende_herhaling <= nu, niet doorgestroomd, max 4
-    const teHerhalen = await sbFetch(
-      `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(effectiveTopic)}&volgende_herhaling=lte.${encodeURIComponent(now)}&doorgestroomd=eq.false&order=volgende_herhaling.asc&limit=4`
-    );
-    herhalingen = teHerhalen.map(r => r.subonderwerp);
-
-    // Nieuw concept: nog niet in concept_niveau
-    const bestaand = await sbFetch(
-      `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(effectiveTopic)}&select=subonderwerp`
-    );
-    const bestaandeSet = new Set(bestaand.map(r => r.subonderwerp));
-    const nieuweKandidaten = alleVraagtypen.filter(s => !bestaandeSet.has(s));
-
-    if (nieuweKandidaten.length > 0) {
-      nieuwSubonderwerp = nieuweKandidaten[Math.floor(Math.random() * nieuweKandidaten.length)];
-    } else {
-      // Alle subonderwerpen al geprobeerd — kies zwakste niet-doorgestroomde
-      const zwakste = await sbFetch(
-        `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(effectiveTopic)}&doorgestroomd=eq.false&order=niveau.asc,streak.asc&limit=1`
-      );
-      nieuwSubonderwerp = zwakste.length > 0
-        ? zwakste[0].subonderwerp
-        : alleVraagtypen[Math.floor(Math.random() * alleVraagtypen.length)];
-    }
-  } catch(e) {
-    // Fallback: spaced repetition via Supabase subonderwerp_scores
-    const gesorteerd = await getZwaksteSubonderwerpen(effectiveTopic, alleVraagtypen);
-    nieuwSubonderwerp = gesorteerd[0];
-  }
-
-  // Plan: herhalingen eerst, dan nieuw, max 5
-  const plan = [
-    ...herhalingen.slice(0, 4).map(s => ({ subonderwerp: s, isHerhaling: true })),
-    ...(nieuwSubonderwerp ? [{ subonderwerp: nieuwSubonderwerp, isHerhaling: false }] : [])
-  ].slice(0, 5);
-
-  return plan.length > 0 ? plan : [{ subonderwerp: alleVraagtypen[0] || 'basis', isHerhaling: false }];
-}
-
 // ─── SESSION ─────────────────────────────────────────────────────────────────
 async function startSession() {
   if (!appPassword) { doLogout(); return; }
@@ -1178,22 +885,8 @@ async function startSession() {
     showScreen('mc');
   } else {
     session = { questions: [], current: 0, results: [] };
-    sessionPlan = [];
     document.getElementById('headerScore').style.display = 'flex';
     updateHeaderScore();
-
-    // Bouw sessie plan op basis van spaced repetition
-    const btn = document.getElementById('startBtn');
-    if (btn) { btn.textContent = 'Sessie laden...'; btn.disabled = true; }
-    try {
-      sessionPlan = await buildSessionPlan(selectedTopic);
-      // selectedCount volgt de werkelijke plan-lengte (max 5)
-      selectedCount = sessionPlan.length;
-    } catch(e) {
-      sessionPlan = [];
-    }
-    if (btn) { btn.textContent = 'Sessie starten'; btn.disabled = false; }
-
     await loadNextQuestion();
     showScreen('question');
   }
@@ -1219,65 +912,62 @@ async function loadNextQuestion() {
   document.getElementById('hintBtn').disabled = false;
   hintUsed = false;
 
-  // Gebruik sessionPlan voor vraagtype; fallback op getZwaksteSubonderwerpen
-  const effectiveTopic = selectedTopic === 'numpy' ? 'pandas' : selectedTopic;
-  const planItem = sessionPlan[session.current];
-  let vraagtype;
-  if (planItem) {
-    vraagtype = planItem.subonderwerp;
-    const herhalingenN = sessionPlan.filter(p => p.isHerhaling).length;
-    const nieuwN = sessionPlan.filter(p => !p.isHerhaling).length;
-    const infoBar = document.getElementById('sessionInfoBar');
-    if (infoBar) {
-      const parts = [];
-      if (herhalingenN > 0) parts.push(`${herhalingenN} herhaling${herhalingenN > 1 ? 'en' : ''}`);
-      if (nieuwN > 0) parts.push(`${nieuwN} nieuw`);
-      const tag = planItem.isHerhaling ? ' · <span style="color:var(--warn)">↻ herhaling</span>' : ' · <span style="color:var(--success)">★ nieuw</span>';
-      infoBar.innerHTML = parts.join(' · ') + tag;
-      infoBar.style.display = 'block';
-    }
-  } else {
-    const alleVraagtypen = topicVraagtypen[effectiveTopic] || [];
-    const gebruikteTypen = session.questions.map(q => q.vraagtype || '').filter(Boolean);
-    const beschikbaar = alleVraagtypen.filter(t => !gebruikteTypen.includes(t));
-    const kandidaten = beschikbaar.length > 0 ? beschikbaar : alleVraagtypen;
-    const gesorteerd = await getZwaksteSubonderwerpen(effectiveTopic, kandidaten);
-    vraagtype = gesorteerd[0];
-  }
+  const topicContexts = {
+    regex: 'Python re module: re.match, re.search, re.findall, re.sub, named groups, lookaheads. Context: parsen van trading logs, order ID patronen, exchange feed berichten, trade timestamps, service namen, foutmeldingen uit matching engines.',
+    pandas: 'Python pandas: DataFrames, Series, groupby, merge, pivot, resample, str accessor, apply, en VOORAL query() voor filteren. Context: latency analyse van trade uitvoering, order flow data verwerken, performance vergelijking tussen exchange sessies, detecteren van anomalieën in handelsdata.',
+    sre: 'Python scripting: subprocess, os, sys, logging, retry logic, exponential backoff, file I/O, argparse, threading basics. Context: reliability scripts voor trading systemen, health checks op exchange verbindingen, alerting tools, automatisch herstarten van falende services, release scripts.',
+    kubernetes: 'Kubernetes concepten en Python kubernetes-client: pods, deployments, services, namespaces, resource requests/limits, kubectl equivalenten in Python. Context: beheren van trading applicaties zoals order routers en exchange connectors in een k8s cluster, bewaken van pod stabiliteit tijdens market hours.',
+    oop: 'Python OOP: klassen, __init__, instance/class/static methods, inheritance, super(), abstracte klassen, dataclasses, properties, dunder methods (__str__, __repr__, __eq__), decorators (@property, @classmethod). Context: modelleren van trading componenten zoals orders, positions, exchange connecties en monitoring tools.',
+    basics: 'Python basisvaardigheden: list comprehensions, dict comprehensions, JSON laden/schrijven (json.load, json.dumps), error handling (try/except/finally), generators, lambda & map/filter, type hints, context managers (with), f-strings, *args/**kwargs, unpacking. Context: verwerken van trade berichten, configuratie bestanden en API responses in een trading omgeving.',
+    linux: 'Linux systeembeheer via Python subprocess: process monitoring (ps, top, htop), log analyse (grep, awk, sed), netwerk troubleshooting (netstat, ss, tcpdump), service management (systemctl, journalctl), resource limiting (ulimit, cgroups), file permissions, debugging tools (strace, lsof), disk en memory analyse (df, free, iostat). Schrijf Python scripts die deze tools aanroepen en de output parsen. Context: troubleshooting en monitoring van trading systemen op Linux servers.',
+    numpy: 'NumPy voor data-analyse: arrays aanmaken en manipuleren, broadcasting, np.mean/std/min/max/sum, np.percentile (p50/p95/p99), np.corrcoef voor correlaties, np.polyfit voor trendlijnen, np.diff voor verschilberekeningen, np.where voor conditionele selectie, np.argsort voor sortering, boolean indexing. Context: analyseren van trading metrics zoals latency, CPU throttling en memory gebruik.',
+    prometheus: 'Prometheus API analyse pipeline: requests.get naar Prometheus HTTP API, parsen van JSON response (status/data/result/values), omzetten van tijdstempel+waarde arrays naar NumPy arrays, verder verwerken met Pandas DataFrames. Chaos scenario\'s: UDP loss, TCP retransmits, CPU throttling (container_cpu_cfs_throttled_seconds_total), memory stress (container_memory_working_set_bytes), pod errors. Bereken correlaties tussen metrics, detecteer anomalieën, vind piekperiodes. Context: jouw eigen Kubernetes cluster met trader en exchange pods.'
+  };
 
-  // linux_perf: interpretatie UI (geen code schrijven)
-  const isLinuxPerf = selectedTopic === 'linux_perf';
-  document.querySelector('#screen-question .answer-label').textContent = isLinuxPerf ? 'Jouw analyse' : 'Jouw antwoord';
-  document.getElementById('answerInput').placeholder = isLinuxPerf
-    ? 'Beschrijf je analyse: wat is het probleem en wat is je aanbevolen volgende stap?'
-    : 'Schrijf hier je Python code...';
+  const topicVraagtypen = {
+    regex: ['IP-adres validatie', 'timestamp parsing', 'log level extractie', 'bestandsnaam matching', 'e-mailadres validatie', 'URL parsing', 'ID patroon herkenning', 'named groups', 'lookahead/lookbehind', 'substitutie met re.sub'],
+    pandas: ['groupby + aggregatie', 'query() filtering', 'merge/join van DataFrames', 'resample op tijd', 'str accessor bewerkingen', 'pivot table', 'apply met lambda', 'missing values afhandelen', 'multi-column sortering', 'value_counts analyse'],
+    sre: ['retry met exponential backoff', 'subprocess aanroepen', 'logfile parsen', 'argparse CLI tool', 'file I/O met context manager', 'threading basics', 'environment variables', 'JSON config laden', 'foutafhandeling met exceptions', 'decorator schrijven'],
+    kubernetes: ['pods in namespace opvragen', 'resource usage filteren', 'deployment schalen', 'pod logs ophalen', 'service endpoints', 'namespace aanmaken', 'label selector queries', 'pod status controleren', 'configmap uitlezen', 'events opvragen'],
+    oop: ['basis klasse met __init__', 'inheritance en super()', 'abstracte basisklasse', 'dataclass aanmaken', '@property getter/setter', '@classmethod factory method', '@staticmethod utility', 'dunder __str__ en __repr__', 'meervoudige inheritance', 'mixin patroon'],
+    basics: ['list comprehension', 'dict comprehension', 'JSON lezen en schrijven', 'try/except/finally foutafhandeling', 'generator functie', 'lambda met map en filter', 'type hints toevoegen', 'context manager met with', 'f-string formatting', '*args en **kwargs gebruiken'],
+    linux: ['processen monitoren met ps/top via subprocess', 'log filteren met grep via Python', 'output van awk parsen', 'netwerk verbindingen opvragen met ss/netstat', 'service status controleren via systemctl', 'journalctl logs uitlezen', 'file permissions aanpassen via Python', 'disk gebruik analyseren met df', 'memory gebruik uitlezen met free', 'lsof gebruiken om open bestanden te vinden'],
+    numpy: ['array aanmaken en indexeren', 'boolean indexing en masking', 'np.mean en np.std berekenen', 'np.percentile voor p95/p99', 'np.corrcoef voor correlatie', 'np.diff voor tijdreeksverschillen', 'np.polyfit voor trendlijn', 'np.where voor conditionele waarden', 'np.argsort voor sortering op waarde', 'broadcasting over arrays'],
+    prometheus: ['JSON response parsen naar arrays', 'tijdstempels omzetten naar datetime', 'CPU throttling percentage berekenen', 'memory piek detecteren in tijdreeks', 'correlatie tussen twee metrics berekenen', 'anomaliedetectie met z-score', 'p95 latency berekenen uit tijdreeks', 'UDP loss patroon analyseren', 'vergelijken van metrics voor en na chaos', 'pod met hoogste resource gebruik vinden']
+  };
 
-  const maxTokens = (selectedTopic === 'prometheus' || isLinuxPerf) ? 1200 : 800;
+  const gebruikteTypen = session.questions.map(q => q.vraagtype || '').filter(Boolean);
+  const beschikbaar = topicVraagtypen[selectedTopic].filter(t => !gebruikteTypen.includes(t));
+  const kandidaten = beschikbaar.length > 0 ? beschikbaar : topicVraagtypen[selectedTopic];
+
+  // Spaced repetition — zwakste subonderwerpen eerst, maar kies willekeurig uit de onderste helft
+  const gesorteerd = await getZwaksteSubonderwerpen(selectedTopic, kandidaten);
+  const zwaksteHelft = gesorteerd.slice(0, Math.max(1, Math.ceil(gesorteerd.length / 2)));
+  const vraagtype = zwaksteHelft[Math.floor(Math.random() * zwaksteHelft.length)];
+
+  const maxTokens = selectedTopic === 'prometheus' ? 1200 : 800;
 
   const prometheusExtra = selectedTopic === 'prometheus' ? `
 BELANGRIJK voor Prometheus vragen: voeg in starter_code een realistische gesimuleerde Prometheus API response toe als Python dict (geen echte API call nodig). Gebruik korte maar representatieve tijdreeksen van max 8 datapunten. Houd de starter_code beknopt.` : '';
 
-  const linuxPerfExtra = isLinuxPerf ? `
-BELANGRIJK: dit zijn GEEN code vragen. Toon in "starter_code" realistische terminal output (top/vmstat/iostat/ss/free/dmesg). De vraag vraagt wat het probleem is en wat de volgende stap is. "model_antwoord" is vrije tekst analyse. Beoordelingscriteria gaan over analysekwaliteit.` : '';
-
-  const prompt = `Je bent een ${isLinuxPerf ? 'Linux performance' : 'Python'} oefendocent die een kandidaat voorbereidt op een Trading Reliability Engineer rol.
-Genereer één ${isLinuxPerf ? 'Linux performance interpretatie-vraag' : 'Python codeer-vraag'} op niveau: ${selectedDiff}.
-Onderwerp: ${topicContexts[effectiveTopic]}
+  const prompt = `Je bent een Python oefendocent die een kandidaat voorbereidt op een Trading Reliability Engineer rol.
+Genereer één Python codeer-vraag op niveau: ${selectedDiff}.
+Onderwerp: ${topicContexts[selectedTopic]}
 Vraagtype (verplicht): ${vraagtype}
 
-${isLinuxPerf ? 'De kandidaat analyseert terminal output in vrij tekst — geen Python code vereist.' : 'De kandidaat moet daadwerkelijk Python code schrijven als antwoord.'}
+De kandidaat moet daadwerkelijk Python code schrijven als antwoord.
 Zorg dat de vraag duidelijk over "${vraagtype}" gaat en niet over iets anders.
 Gebruik waar mogelijk een scenario dat past bij trading systemen, exchange connecties, latency of reliability.
-${linuxPerfExtra}
+${gebruikteTypen.length > 0 ? `Al behandelde vraagtypen (NIET herhalen): ${gebruikteTypen.join(', ')}.` : ''}
 ${prometheusExtra}
 
 Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
 {
-  "vraag": "duidelijke opdracht in het Nederlands, max 3 zinnen",
+  "vraag": "duidelijke opdracht in het Nederlands, max 3 zinnen, beschrijf precies wat de functie/code moet doen",
   "vraagtype": "${vraagtype}",
-  "starter_code": "${isLinuxPerf ? 'de te tonen terminal output' : 'optionele startcode, leeg string als niet van toepassing'}",
+  "starter_code": "optionele startcode die de kandidaat moet aanvullen, leeg string als niet van toepassing",
   "hints": ["hint1 in het Nederlands", "hint2 in het Nederlands"],
-  "model_antwoord": "${isLinuxPerf ? 'verwachte analyse en aanbeveling in tekst' : 'de correcte Python code oplossing'}",
+  "model_antwoord": "de correcte Python code oplossing",
   "beoordelingscriteria": ["criterium 1", "criterium 2", "criterium 3"]
 }`;
 
@@ -1291,10 +981,7 @@ Reageer UITSLUITEND met geldig JSON, geen markdown, geen backticks:
     if (currentQuestion.starter_code && currentQuestion.starter_code.trim()) {
       document.getElementById('codeStarter').textContent = currentQuestion.starter_code;
       document.getElementById('codeStarter').style.display = 'block';
-      // linux_perf: terminal output tonen maar NIET in antwoordveld zetten
-      if (!isLinuxPerf) {
-        document.getElementById('answerInput').value = currentQuestion.starter_code;
-      }
+      document.getElementById('answerInput').value = currentQuestion.starter_code;
     }
   } catch(e) {
     document.getElementById('questionText').textContent = 'Fout bij laden. Controleer je verbinding.';
@@ -1322,32 +1009,7 @@ async function submitAnswer() {
   document.getElementById('hintBtn').disabled = true;
 
   const criteria = currentQuestion.beoordelingscriteria.join('\n- ');
-  const isLinuxPerfQ = selectedTopic === 'linux_perf';
-  const prompt = isLinuxPerfQ
-    ? `Beoordeel de Linux performance analyse van een kandidaat die oefent voor een Trading Reliability Engineer rol.
-
-Vraag: ${currentQuestion.vraag}
-
-Getoonde terminal output:
-${currentQuestion.starter_code}
-
-Beoordelingscriteria:
-- ${criteria}
-
-Analyse van kandidaat:
-${answer}
-
-Verwachte analyse (intern):
-${currentQuestion.model_antwoord}
-
-Reageer UITSLUITEND met geldig JSON:
-{
-  "correct": true of false,
-  "score": getal 0-100,
-  "feedback": "2-4 zinnen feedback in het Nederlands: wat herkende de kandidaat goed, wat miste hij/zij",
-  "toon_model": true of false
-}`
-    : `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
+  const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
 
 Vraag: ${currentQuestion.vraag}
 
@@ -1394,7 +1056,7 @@ Reageer UITSLUITEND met geldig JSON:
     });
 
     updateHeaderScore();
-    saveProgress(selectedTopic, currentQuestion.vraagtype || '', correct, result.score, currentQuestion.vraag, 'code');
+    await saveProgress(selectedTopic, currentQuestion.vraagtype || '', correct, result.score, currentQuestion.vraag, 'code');
     document.getElementById('nextRow').style.display = 'block';
     document.getElementById('followupSection').style.display = 'block';
     document.getElementById('followupAnswer').style.display = 'none';
@@ -1557,7 +1219,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('mcCodeModelAnswer').textContent = q.model_antwoord;
     }
 
-    saveProgress(selectedTopic, currentMcQuestion?.onderwerp || '', correct, result.score, q.vraag, 'mc-code');
+    await saveProgress(selectedTopic, currentMcQuestion?.onderwerp || '', correct, result.score, q.vraag, 'mc-code');
     document.getElementById('mcCodeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -1599,17 +1261,7 @@ const mcOnderwerpenPerTopic = {
     'apply vs vectorized operaties',
     'MultiIndex DataFrames',
     'str accessor voor tekstkolommen',
-    'pivot_table vs crosstab',
-    'ndarray vs Python list: wanneer gebruik je wat',
-    'Broadcasting: hoe werkt het en wanneer faalt het',
-    'Verschil tussen np.mean en np.nanmean',
-    'Wat doet np.diff op een tijdreeks',
-    'Pearson correlatie met np.corrcoef interpreteren',
-    'Boolean indexing vs np.where',
-    'np.percentile vs np.quantile',
-    'np.argsort vs np.sort',
-    'Verschil tussen axis=0 en axis=1',
-    'Wanneer gebruik je np.polyfit'
+    'pivot_table vs crosstab'
   ],
   sre: [
     'Retry logic en exponential backoff',
@@ -1673,6 +1325,18 @@ const mcOnderwerpenPerTopic = {
     'inode uitputting en hoe te detecteren',
     '/proc filesystem voor process info'
   ],
+  numpy: [
+    'ndarray vs Python list: wanneer gebruik je wat',
+    'Broadcasting: hoe werkt het en wanneer faalt het',
+    'Verschil tussen np.mean en np.nanmean',
+    'Wat doet np.diff op een tijdreeks',
+    'Pearson correlatie met np.corrcoef interpreteren',
+    'Boolean indexing vs np.where',
+    'np.percentile vs np.quantile',
+    'np.argsort vs np.sort',
+    'Verschil tussen axis=0 en axis=1',
+    'Wanneer gebruik je np.polyfit'
+  ],
   prometheus: [
     'Prometheus data model: metrics, labels en tijdreeksen',
     'Verschil tussen counter, gauge, histogram en summary',
@@ -1684,102 +1348,6 @@ const mcOnderwerpenPerTopic = {
     'Wat is een z-score en wanneer is iets een anomalie',
     'Verschil tussen instantaneous en range queries',
     'Hoe detecteer je een memory leak via tijdreeksdata'
-  ],
-  asyncio: [
-    'Verschil tussen asyncio.gather en asyncio.create_task',
-    'Event loop en hoe Python async/await werkt',
-    'asyncio.Queue voor producer-consumer patronen',
-    'asyncio.sleep vs time.sleep in async code',
-    'Asyncio exceptions afhandelen met try/except',
-    'asyncio.Semaphore voor rate limiting',
-    'asyncio.Event voor synchronisatie tussen coroutines',
-    'TCP sockets met asyncio.open_connection',
-    'asyncio timeout met asyncio.wait_for',
-    'Verschil tussen coroutine, task en future'
-  ],
-  websocket: [
-    'WebSocket vs HTTP: wanneer gebruik je welk',
-    'Reconnect strategie voor WebSocket clients',
-    'Ping/pong heartbeat mechanisme',
-    'Subscription flow bij exchange WebSocket feeds',
-    'Orderbook snapshot vs incremental updates',
-    'Foutafhandeling bij verbindingsverbreking',
-    'Meerdere symbolen subscriben op één verbinding',
-    'Message serialisatie: JSON vs MessagePack',
-    'Backpressure in WebSocket consumers',
-    'WebSocket vs FIX protocol in trading'
-  ],
-  dataclasses: [
-    'Verschil tussen @dataclass en gewone klasse',
-    'frozen=True in dataclasses: wanneer gebruiken',
-    'field() met default_factory voor mutable defaults',
-    'TypedDict vs dataclass vs NamedTuple',
-    'Protocol voor structural subtyping',
-    '__post_init__ voor validatie en berekeningen',
-    'Hoe Optional en Union type hints werken',
-    'Literal type en wanneer je het gebruikt',
-    'Inheritance bij dataclasses',
-    'Verschil tussen TypeVar en Generic'
-  ],
-  exceptions: [
-    'Verschil tussen raise en raise from',
-    'Custom exception klassen: wanneer en hoe',
-    'contextlib.suppress: gebruik en valkuilen',
-    'try/except/else/finally volgorde en semantiek',
-    'Exception chaining: __cause__ vs __context__',
-    'Circuit breaker patroon uitgelegd',
-    'Wanneer gebruik je assertions vs exceptions',
-    'ExceptionGroup in Python 3.11+',
-    'Exceptions loggen met traceback module',
-    'Re-raise van exceptions in except blok'
-  ],
-  backtesting: [
-    'OHLCV data structuur en tijdreeksindexering',
-    'Rolling window berekeningen in Pandas',
-    'Sharpe ratio formule en interpretatie',
-    'Max drawdown berekening en betekenis',
-    'Verschil tussen in-sample en out-of-sample testen',
-    'Slippage modelleren in een backtest',
-    'Win rate vs profit factor: wat zegt het',
-    'Momentum vs mean-reversion strategieën',
-    'Look-ahead bias vermijden in backtests',
-    'Overfitting herkennen in backtest resultaten'
-  ],
-  linux_perf: [
-    'top output: verschil tussen us, sy, id, wa, st CPU percentages',
-    'vmstat: wat betekent swpd > 0 en si/so activiteit',
-    'iostat: hoe herken je disk saturation (%util > 90)',
-    'load average: wanneer is het systeem overloaded',
-    'free: verschil tussen available en free memory',
-    'ss -s: wat betekent een groot aantal TIME_WAIT',
-    'CPU steal time: wat veroorzaakt het en impact op trading',
-    'OOM killer: hoe herken je het in dmesg/journalctl',
-    'Context switches in perf stat: wanneer is het te veel',
-    'Network retransmits: wat veroorzaakt het en hoe detecteer je het'
-  ],
-  logs: [
-    'regex groepen: wanneer gebruik je (?P<name>...) vs gewone groepen',
-    'subprocess.run vs subprocess.Popen: wanneer gebruik je welke',
-    'journalctl -u: hoe filter je op unit en tijdsbereik',
-    'kubectl logs --since en --tail: wanneer gebruik je welke flag',
-    'structured logging: wat is het voordeel van JSON logs boven plaintext',
-    'log levels: wanneer gebruik je ERROR vs CRITICAL vs WARNING',
-    'tijdstempel formaten: ISO 8601 vs epoch vs syslog formaat',
-    'stacktrace in logs: hoe herken je het begin en einde',
-    'log rotatie: wat is logrotate en waarom is het belangrijk',
-    'meerdere logbestanden: hoe combineer je ze gesorteerd op tijdstempel'
-  ],
-  reliability: [
-    'Wat is exponential backoff en waarom gebruik je het',
-    'Verschil tussen retry en circuit breaker',
-    'Wat doet een dead man\'s switch',
-    'Hoe implementeer je graceful shutdown in Python',
-    'Verschil tussen liveness en readiness check',
-    'Wat is een bulkhead patroon',
-    'Wanneer gebruik je een fallback strategie',
-    'Hoe voorkom je een retry storm',
-    'Wat is jitter in retry logic',
-    'Verschil tussen timeout en deadline'
   ]
 };
 
@@ -1866,7 +1434,7 @@ Waarbij "correct" de index is (0=A, 1=B, 2=C, 3=D) van het juiste antwoord.`;
   }
 }
 
-function selectMcAnswer(idx) {
+async function selectMcAnswer(idx) {
   if (!currentMcQuestion) return;
   const options = document.querySelectorAll('.mc-option');
   const correct = currentMcQuestion.correct;
@@ -1890,7 +1458,7 @@ function selectMcAnswer(idx) {
     score: isCorrect ? 100 : 0
   });
 
-  saveProgress(selectedTopic, currentMcQuestion.onderwerp, isCorrect, isCorrect ? 100 : 0, currentMcQuestion.vraag, 'mc');
+  await saveProgress(selectedTopic, currentMcQuestion.onderwerp, isCorrect, isCorrect ? 100 : 0, currentMcQuestion.vraag, 'mc');
   updateHeaderScore();
   document.getElementById('mcNextRow').style.display = 'block';
   document.getElementById('mcFollowupSection').style.display = 'block';
@@ -2016,9 +1584,6 @@ function updateHeaderScore() {
 
 // ─── PROGRESS STORAGE ────────────────────────────────────────────────────────
 async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
-  // Stap 5: NumPy → Pandas remapping voor nieuwe data
-  if (topic === 'numpy') topic = 'pandas';
-
   // Lokaal altijd opslaan als fallback
   const data = JSON.parse(localStorage.getItem('sre_progress') || '{}');
   if (!data[topic]) data[topic] = { total: 0, correct: 0, scores: [] };
@@ -2063,63 +1628,6 @@ async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
       score,
       modus: modus || 'code'
     });
-
-    // Stap 2: concept_niveau upsert (spaced repetition niveausysteem)
-    // Vereiste Supabase tabel: concept_niveau
-    // Kolommen: onderwerp text, subonderwerp text, niveau int, streak int,
-    //           laatste_gezien timestamptz, volgende_herhaling timestamptz,
-    //           doorgestroomd boolean, eerste_correct timestamptz
-    try {
-      const niveauRecs = await sbFetch(
-        `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(topic)}&subonderwerp=eq.${encodeURIComponent(subonderwerp)}`
-      );
-      const now = new Date();
-      const spacedDagen = (streak) => streak >= 3 ? 7 : streak === 2 ? 3 : 1;
-
-      if (niveauRecs.length > 0) {
-        const rec = niveauRecs[0];
-        const nieuweStreak = correct ? rec.streak + 1 : 0;
-        const dagen = spacedDagen(nieuweStreak);
-        const volgendeHerhaling = correct
-          ? new Date(now.getTime() + dagen * 86400000).toISOString()
-          : now.toISOString(); // bij fout: direct opnieuw
-
-        // Doorgestroomd: streak >= 3 én eerste correcte poging minimaal 2 dagen geleden
-        let doorgestroomd = rec.doorgestroomd || false;
-        let nieuwNiveau = rec.niveau;
-        if (correct && nieuweStreak >= 3 && rec.eerste_correct && !doorgestroomd) {
-          const dagsSindsEerste = (now - new Date(rec.eerste_correct)) / 86400000;
-          if (dagsSindsEerste >= 2) {
-            doorgestroomd = true;
-            nieuwNiveau = Math.min(5, rec.niveau + 1);
-          }
-        }
-
-        await sbFetch(
-          `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(topic)}&subonderwerp=eq.${encodeURIComponent(subonderwerp)}`,
-          'PATCH',
-          { streak: nieuweStreak, niveau: nieuwNiveau, laatste_gezien: now.toISOString(), volgende_herhaling: volgendeHerhaling, doorgestroomd }
-        );
-      } else {
-        // Nieuw record
-        const volgendeHerhaling = correct
-          ? new Date(now.getTime() + 86400000).toISOString()
-          : now.toISOString();
-        await sbFetch('/rest/v1/concept_niveau', 'POST', {
-          onderwerp: topic,
-          subonderwerp: subonderwerp,
-          niveau: 0,
-          streak: correct ? 1 : 0,
-          laatste_gezien: now.toISOString(),
-          volgende_herhaling: volgendeHerhaling,
-          doorgestroomd: false,
-          eerste_correct: correct ? now.toISOString() : null
-        });
-      }
-    } catch(e) {
-      console.warn('concept_niveau opslaan mislukt (tabel aangemaakt?):', e.message);
-    }
-
   } catch(e) {
     console.warn('Supabase opslaan mislukt, alleen lokaal opgeslagen:', e.message);
   }
@@ -2170,157 +1678,6 @@ async function getZwaksteSubonderwerpen(topic, beschikbaar) {
   }
 }
 
-// ─── AANBEVOLEN ──────────────────────────────────────────────────────────────
-let _aanbevolenTopic = null;
-
-async function renderAanbevolen() {
-  let niveauData = [];
-  try {
-    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,niveau');
-  } catch(e) { return; }
-
-  // Aggregate per topic
-  const topicStats = {};
-  for (const row of niveauData) {
-    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0 };
-    topicStats[row.onderwerp].sum += (row.niveau || 0);
-    topicStats[row.onderwerp].count++;
-  }
-
-  function topicPct(t) {
-    const s = topicStats[t];
-    if (!s || s.count === 0) return 0;
-    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
-  }
-  function levelPct(topics) {
-    return Math.round(topics.reduce((a, t) => a + topicPct(t), 0) / topics.length);
-  }
-
-  // Find the lowest unlocked, not-yet-completed level
-  let activeLevelTopics = null;
-  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
-    const unlocked = i === 0 || levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
-    if (!unlocked) break;
-    if (levelPct(LEERPAD_LEVELS[i].topics) < 80) {
-      activeLevelTopics = LEERPAD_LEVELS[i].topics;
-      break;
-    }
-  }
-
-  if (!activeLevelTopics) return; // all levels complete
-
-  // Find the topic with the lowest % in that level
-  let lowestTopic = activeLevelTopics[0];
-  let lowestPct = topicPct(lowestTopic);
-  for (const t of activeLevelTopics) {
-    const p = topicPct(t);
-    if (p < lowestPct) { lowestPct = p; lowestTopic = t; }
-  }
-
-  _aanbevolenTopic = lowestTopic;
-  document.getElementById('aanbevolenIcon').textContent = TOPIC_ICONS[lowestTopic] || '⭐';
-  document.getElementById('aanbevolenTopic').textContent = TOPIC_LABELS[lowestTopic];
-  document.getElementById('aanbevolenSub').textContent = `Voortgang: ${lowestPct}% · klik om te starten`;
-  document.getElementById('aanbevolenBlock').style.display = 'flex';
-}
-
-function aanbevolenSelectTopic() {
-  if (!_aanbevolenTopic) return;
-  document.querySelectorAll('#topicList .option-item').forEach(item => {
-    const oc = item.getAttribute('onclick') || '';
-    item.classList.toggle('selected', oc.includes(`'${_aanbevolenTopic}'`));
-  });
-  selectedTopic = _aanbevolenTopic;
-  // scroll down to the start button
-  document.getElementById('startBtn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// ─── LEERPAD ─────────────────────────────────────────────────────────────────
-async function renderLeerpad() {
-  const container = document.getElementById('leerpladNiveaus');
-  container.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0;">Laden...</p>';
-
-  let niveauData = [];
-  try {
-    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,subonderwerp,niveau,doorgestroomd');
-  } catch(e) { niveauData = []; }
-
-  // Aggregate per topic: sum of niveau, count of subonderwerpen, doorgestroomd count
-  const topicStats = {};
-  for (const row of niveauData) {
-    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0, doorgestroomd: 0 };
-    topicStats[row.onderwerp].sum += (row.niveau || 0);
-    topicStats[row.onderwerp].count++;
-    if (row.doorgestroomd) topicStats[row.onderwerp].doorgestroomd++;
-  }
-
-  // Progress per topic: percentage 0-100 based on average niveau/5
-  function topicPct(t) {
-    const s = topicStats[t];
-    if (!s || s.count === 0) return 0;
-    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
-  }
-
-  // Level progress: average topic pct for all topics in level
-  function levelPct(topics) {
-    const sum = topics.reduce((a, t) => a + topicPct(t), 0);
-    return Math.round(sum / topics.length);
-  }
-
-  // Level unlocked if previous level has >= 30% progress
-  function isUnlocked(i) {
-    if (i === 0) return true;
-    return levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
-  }
-
-  let html = '';
-  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
-    const lvl = LEERPAD_LEVELS[i];
-    const unlocked = isUnlocked(i);
-    const pct = levelPct(lvl.topics);
-    const completed = pct >= 80;
-    const stateClass = !unlocked ? 'locked' : completed ? 'completed' : '';
-
-    html += `<div class="leerpad-level ${stateClass}">
-      <div class="leerpad-level-header">
-        <div class="leerpad-level-badge">${unlocked ? lvl.emoji : '🔒'}</div>
-        <div style="flex:1">
-          <div class="leerpad-level-naam">${lvl.naam}</div>
-          <div class="leerpad-level-sub">Niveau ${lvl.niveau}</div>
-        </div>
-        ${unlocked ? `<div class="leerpad-level-pct">${pct}%</div>` : ''}
-      </div>
-      ${unlocked ? `<div class="leerpad-progress-bar"><div class="leerpad-progress-fill" style="width:${pct}%"></div></div>` : ''}
-      <div class="leerpad-topics">
-        ${lvl.topics.map(t => {
-          const p = topicPct(t);
-          if (!unlocked) {
-            return `<div class="leerpad-topic leerpad-topic-locked">
-              <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
-              <span class="leerpad-topic-lock">🔒</span>
-            </div>`;
-          }
-          return `<div class="leerpad-topic" onclick="leerpladSelectTopic('${t}')">
-            <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
-            <span class="leerpad-topic-pct">${p}%</span>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  container.innerHTML = html;
-}
-
-function leerpladSelectTopic(topic) {
-  document.querySelectorAll('#topicList .option-item').forEach(item => {
-    const oc = item.getAttribute('onclick') || '';
-    item.classList.toggle('selected', oc.includes(`'${topic}'`));
-  });
-  selectedTopic = topic;
-  showScreen('setup');
-}
-
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 async function renderDashboard() {
   const data = getProgress();
@@ -2349,7 +1706,7 @@ async function renderDashboard() {
         <div class="topic-info">
           <div class="topic-info-name">${TOPIC_LABELS[t]}</div>
           <div class="topic-info-bar-bg"><div class="topic-info-bar-fill" style="width:${pct}%"></div></div>
-          <div class="topic-info-stats" id="topicstats-${t}">${d.correct}/${d.total} correct</div>
+          <div class="topic-info-stats">${d.correct}/${d.total} correct</div>
         </div>
         <div class="topic-pct-big">${pct}%</div>
       </div>
@@ -2357,44 +1714,20 @@ async function renderDashboard() {
     }).join('');
   }
 
-  // Laad concept_niveau + subonderwerp scores vanuit Supabase
+  // Laad subonderwerp scores vanuit Supabase
   try {
-    const [scores, niveauData] = await Promise.all([
-      sbFetch('/rest/v1/subonderwerp_scores?order=laatste_score.asc&limit=100'),
-      sbFetch('/rest/v1/concept_niveau?select=onderwerp,subonderwerp,niveau,streak,volgende_herhaling,doorgestroomd&limit=200')
-        .catch(() => [])
-    ]);
-
-    // Per-topic niveau aggregaat
-    const niveauPerTopic = {};
-    niveauData.forEach(n => {
-      if (!niveauPerTopic[n.onderwerp]) niveauPerTopic[n.onderwerp] = { sum: 0, count: 0, streak: 0 };
-      niveauPerTopic[n.onderwerp].sum += n.niveau;
-      niveauPerTopic[n.onderwerp].count++;
-      niveauPerTopic[n.onderwerp].streak = Math.max(niveauPerTopic[n.onderwerp].streak, n.streak);
-    });
-
-    // Update topic stats met niveau info
-    Object.entries(niveauPerTopic).forEach(([topic, nv]) => {
-      const el = document.getElementById(`topicstats-${topic}`);
-      if (!el) return;
-      const avgNiveau = nv.count ? (nv.sum / nv.count).toFixed(1) : 0;
-      const niveauBars = '█'.repeat(Math.round(avgNiveau)) + '░'.repeat(5 - Math.round(avgNiveau));
-      el.innerHTML = `${niveauBars} niveau ${Math.round(avgNiveau)}/5 &nbsp;·&nbsp; streak: ${nv.streak}`;
-      el.style.fontFamily = 'JetBrains Mono, monospace';
-      el.style.fontSize = '11px';
-    });
-
-    // Subonderwerp scores per topic (max 5 zwakste)
+    const scores = await sbFetch('/rest/v1/subonderwerp_scores?order=laatste_score.asc&limit=50');
     const perTopic = {};
     scores.forEach(s => {
       if (!perTopic[s.onderwerp]) perTopic[s.onderwerp] = [];
       perTopic[s.onderwerp].push(s);
     });
+
     Object.entries(perTopic).forEach(([topic, items]) => {
       const el = document.getElementById(`subonderwerpen-${topic}`);
       if (!el) return;
-      el.innerHTML = items.slice(0, 5).map(s => {
+      const top5 = items.slice(0, 5);
+      el.innerHTML = top5.map(s => {
         const pct = s.pogingen > 0 ? Math.round((s.correct / s.pogingen) * 100) : 0;
         const kleur = pct < 50 ? 'var(--danger)' : pct < 75 ? 'var(--warn)' : 'var(--success)';
         return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;border-top:0.5px solid var(--border);">
@@ -2404,30 +1737,6 @@ async function renderDashboard() {
         </div>`;
       }).join('');
     });
-
-    // Stap 4: "Vandaag te herhalen" sectie
-    const now = new Date().toISOString();
-    const teHerhalen = niveauData.filter(n => n.volgende_herhaling <= now && !n.doorgestroomd);
-    const herhalenContainer = document.getElementById('dashVandaagHerhalen');
-    if (herhalenContainer) {
-      if (teHerhalen.length === 0) {
-        herhalenContainer.innerHTML = '<p style="font-size:13px;color:var(--muted);">Niets te herhalen vandaag. Goed gedaan!</p>';
-      } else {
-        herhalenContainer.innerHTML = teHerhalen.slice(0, 10).map(n => {
-          const label = TOPIC_LABELS[n.onderwerp] || n.onderwerp;
-          const icon = TOPIC_ICONS[n.onderwerp] || '📚';
-          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;">
-            <span style="font-size:15px;">${icon}</span>
-            <div style="flex:1;">
-              <div style="font-size:13px;font-weight:500;">${n.subonderwerp}</div>
-              <div style="font-size:11px;color:var(--muted);">${label} · streak ${n.streak}</div>
-            </div>
-            <span style="font-size:11px;color:var(--warn);">↻ herhalen</span>
-          </div>`;
-        }).join('');
-      }
-    }
-
   } catch(e) {
     console.warn('Supabase dashboard laden mislukt:', e.message);
   }
@@ -2596,7 +1905,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('followupPracticeModelAnswer').textContent = currentFollowupPracticeQuestion.model_antwoord;
     }
 
-    saveProgress(lastFollowupContext.topic, lastFollowupContext.vraag, correct, result.score, currentFollowupPracticeQuestion.vraag, 'followup');
+    await saveProgress(lastFollowupContext.topic, lastFollowupContext.vraag, correct, result.score, currentFollowupPracticeQuestion.vraag, 'followup');
     document.getElementById('followupPracticeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -2611,128 +1920,6 @@ function showFollowupHint() {
   const hintBox = document.getElementById('followupPracticeHintBox');
   hintBox.className = 'hint-box show';
   hintBox.textContent = '💡 ' + currentFollowupPracticeQuestion.hints[0];
-}
-
-// ─── WAAROM DIT PATROON ───────────────────────────────────────────────────────
-let currentWaaromQuestion = null;
-
-async function startWaaromPatroon() {
-  if (!currentQuestion) return;
-
-  const diffClass = { makkelijk: 'badge-easy', gemiddeld: 'badge-medium', moeilijk: 'badge-hard' }[selectedDiff];
-  document.getElementById('waaromTopic').textContent = TOPIC_LABELS[selectedTopic];
-  const diffEl = document.getElementById('waaromDiff');
-  diffEl.className = 'badge ' + diffClass;
-  diffEl.textContent = selectedDiff.charAt(0).toUpperCase() + selectedDiff.slice(1);
-  document.getElementById('waaromConcept').textContent = 'Laden...';
-  document.getElementById('waaromQuestionText').textContent = 'Vraag genereren...';
-  document.getElementById('waaromAnswerInput').value = '';
-  document.getElementById('waaromFeedbackBox').className = 'feedback-box';
-  document.getElementById('waaromKernpunten').style.display = 'none';
-  document.getElementById('waaromVoorbeeldModel').style.display = 'none';
-  document.getElementById('waaromNextRow').style.display = 'none';
-  document.getElementById('waaromSubmitBtn').disabled = false;
-  currentWaaromQuestion = null;
-
-  showScreen('waarom');
-
-  const prompt = `De kandidaat heeft zojuist deze code vraag beantwoord:
-Vraag: ${currentQuestion.vraag}
-Modelantwoord: ${currentQuestion.model_antwoord}
-
-Identificeer het belangrijkste Python patroon of concept in dit modelantwoord (bijv. yield, try/except, dataclass, async/await).
-
-Genereer een gerichte waarom-vraag over precies dat patroon in deze context.
-
-NIET: "Waarom werkt dit?"
-WEL:  "Waarom gebruik je hier yield in plaats van return?"
-WEL:  "Waarom gebruik je hier try/except in plaats van een if-check?"
-WEL:  "Waarom gebruik je hier een dataclass in plaats van een gewone dict?"
-
-De vraag moet altijd gaan over de keuze voor dit patroon versus een alternatief.
-
-Reageer UITSLUITEND met geldig JSON:
-{
-  "concept": "het geidentificeerde patroon",
-  "vraag": "de gerichte waarom-vraag in Nederlands",
-  "kernpunten": ["punt1", "punt2", "punt3"],
-  "voorbeeldantwoord": "wat een goed antwoord bevat"
-}`;
-
-  try {
-    const res = await callClaude(prompt, 600);
-    const clean = res.replace(/```json|```/g, '').trim();
-    currentWaaromQuestion = JSON.parse(clean);
-    document.getElementById('waaromConcept').textContent = currentWaaromQuestion.concept;
-    document.getElementById('waaromQuestionText').textContent = currentWaaromQuestion.vraag;
-  } catch(e) {
-    document.getElementById('waaromConcept').textContent = 'Fout';
-    document.getElementById('waaromQuestionText').textContent = 'Fout bij laden. Controleer je verbinding.';
-  }
-}
-
-async function submitWaaromPatroon() {
-  const answer = document.getElementById('waaromAnswerInput').value.trim();
-  if (!answer || !currentWaaromQuestion) return;
-
-  const fb = document.getElementById('waaromFeedbackBox');
-  fb.className = 'feedback-box loading show';
-  document.getElementById('waaromFeedbackTitle').textContent = '';
-  document.getElementById('waaromFeedbackText').innerHTML = '<span class="spinner"></span> Beoordelen...';
-  document.getElementById('waaromKernpunten').style.display = 'none';
-  document.getElementById('waaromVoorbeeldModel').style.display = 'none';
-  document.getElementById('waaromSubmitBtn').disabled = true;
-
-  const prompt = `Beoordeel het antwoord van een kandidaat op een theoretische waarom-vraag.
-
-Concept: ${currentWaaromQuestion.concept}
-Vraag: ${currentWaaromQuestion.vraag}
-
-Kernpunten van een goed antwoord:
-${currentWaaromQuestion.kernpunten.map((k, i) => `${i + 1}. ${k}`).join('\n')}
-
-Voorbeeldantwoord (intern):
-${currentWaaromQuestion.voorbeeldantwoord}
-
-Antwoord van de kandidaat:
-${answer}
-
-Beoordeel op begrip van het patroon en de motivatie voor de keuze versus alternatieven.
-
-Reageer UITSLUITEND met geldig JSON:
-{
-  "correct": true of false,
-  "score": getal 0-100,
-  "feedback": "2-4 zinnen feedback in het Nederlands over het begrip van het patroon en de keuze",
-  "toon_model": true of false
-}`;
-
-  try {
-    const res = await callClaude(prompt, 400);
-    const clean = res.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
-    const correct = result.correct || result.score >= 70;
-
-    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
-    document.getElementById('waaromFeedbackTitle').textContent = correct ? '✓ Goed begrip!' : '✗ Niet volledig';
-    document.getElementById('waaromFeedbackText').textContent = result.feedback;
-
-    document.getElementById('waaromKernpunten').style.display = 'block';
-    document.getElementById('waaromKernpuntenList').innerHTML = currentWaaromQuestion.kernpunten
-      .map(k => `<div>• ${k}</div>`).join('');
-
-    if (result.toon_model || !correct) {
-      document.getElementById('waaromVoorbeeldModel').style.display = 'block';
-      document.getElementById('waaromVoorbeeldantwoord').textContent = currentWaaromQuestion.voorbeeldantwoord;
-    }
-
-    saveProgress(selectedTopic, currentWaaromQuestion.concept, correct, result.score, currentWaaromQuestion.vraag, 'theorie-code');
-    document.getElementById('waaromNextRow').style.display = 'block';
-  } catch(e) {
-    fb.className = 'feedback-box show incorrect';
-    document.getElementById('waaromFeedbackTitle').textContent = 'Fout bij beoordelen.';
-    document.getElementById('waaromSubmitBtn').disabled = false;
-  }
 }
 
 // ─── CLAUDE API ──────────────────────────────────────────────────────────────
