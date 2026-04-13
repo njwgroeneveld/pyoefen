@@ -887,7 +887,6 @@ async function startSession() {
     session = { questions: [], current: 0, results: [] };
     document.getElementById('headerScore').style.display = 'flex';
     updateHeaderScore();
-<<<<<<< HEAD
 
     // Bouw sessie plan op basis van spaced repetition
     const btn = document.getElementById('startBtn');
@@ -899,22 +898,6 @@ async function startSession() {
     }
     if (btn) { btn.textContent = 'Sessie starten'; btn.disabled = false; }
 
-||||||| 8283b1a
-
-    // Bouw sessie plan op basis van spaced repetition
-    const btn = document.getElementById('startBtn');
-    if (btn) { btn.textContent = 'Sessie laden...'; btn.disabled = true; }
-    try {
-      sessionPlan = await buildSessionPlan(selectedTopic);
-      // selectedCount volgt de werkelijke plan-lengte (max 5)
-      selectedCount = sessionPlan.length;
-    } catch(e) {
-      sessionPlan = [];
-    }
-    if (btn) { btn.textContent = 'Sessie starten'; btn.disabled = false; }
-
-=======
->>>>>>> eff19935b1687b99c0b73b48b7721ee6730ef7d6
     await loadNextQuestion();
     showScreen('question');
   }
@@ -1706,7 +1689,6 @@ async function getZwaksteSubonderwerpen(topic, beschikbaar) {
   }
 }
 
-<<<<<<< HEAD
 // ─── AANBEVOLEN ──────────────────────────────────────────────────────────────
 let _aanbevolenTopic = null;
 
@@ -1862,160 +1844,6 @@ function leerpladSelectTopic(topic) {
   showScreen('setup');
 }
 
-||||||| 8283b1a
-// ─── AANBEVOLEN ──────────────────────────────────────────────────────────────
-let _aanbevolenTopic = null;
-
-async function renderAanbevolen() {
-  let niveauData = [];
-  try {
-    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,niveau');
-  } catch(e) { return; }
-
-  // Aggregate per topic
-  const topicStats = {};
-  for (const row of niveauData) {
-    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0 };
-    topicStats[row.onderwerp].sum += (row.niveau || 0);
-    topicStats[row.onderwerp].count++;
-  }
-
-  function topicPct(t) {
-    const s = topicStats[t];
-    if (!s || s.count === 0) return 0;
-    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
-  }
-  function levelPct(topics) {
-    return Math.round(topics.reduce((a, t) => a + topicPct(t), 0) / topics.length);
-  }
-
-  // Find the lowest unlocked, not-yet-completed level
-  let activeLevelTopics = null;
-  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
-    const unlocked = i === 0 || levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
-    if (!unlocked) break;
-    if (levelPct(LEERPAD_LEVELS[i].topics) < 80) {
-      activeLevelTopics = LEERPAD_LEVELS[i].topics;
-      break;
-    }
-  }
-
-  if (!activeLevelTopics) return; // all levels complete
-
-  // Find the topic with the lowest % in that level
-  let lowestTopic = activeLevelTopics[0];
-  let lowestPct = topicPct(lowestTopic);
-  for (const t of activeLevelTopics) {
-    const p = topicPct(t);
-    if (p < lowestPct) { lowestPct = p; lowestTopic = t; }
-  }
-
-  _aanbevolenTopic = lowestTopic;
-  document.getElementById('aanbevolenIcon').textContent = TOPIC_ICONS[lowestTopic] || '⭐';
-  document.getElementById('aanbevolenTopic').textContent = TOPIC_LABELS[lowestTopic];
-  document.getElementById('aanbevolenSub').textContent = `Voortgang: ${lowestPct}% · klik om te starten`;
-  document.getElementById('aanbevolenBlock').style.display = 'flex';
-}
-
-function aanbevolenSelectTopic() {
-  if (!_aanbevolenTopic) return;
-  document.querySelectorAll('#topicList .option-item').forEach(item => {
-    const oc = item.getAttribute('onclick') || '';
-    item.classList.toggle('selected', oc.includes(`'${_aanbevolenTopic}'`));
-  });
-  selectedTopic = _aanbevolenTopic;
-  // scroll down to the start button
-  document.getElementById('startBtn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// ─── LEERPAD ─────────────────────────────────────────────────────────────────
-async function renderLeerpad() {
-  const container = document.getElementById('leerpladNiveaus');
-  container.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:1rem 0;">Laden...</p>';
-
-  let niveauData = [];
-  try {
-    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,subonderwerp,niveau,doorgestroomd');
-  } catch(e) { niveauData = []; }
-
-  // Aggregate per topic: sum of niveau, count of subonderwerpen, doorgestroomd count
-  const topicStats = {};
-  for (const row of niveauData) {
-    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0, doorgestroomd: 0 };
-    topicStats[row.onderwerp].sum += (row.niveau || 0);
-    topicStats[row.onderwerp].count++;
-    if (row.doorgestroomd) topicStats[row.onderwerp].doorgestroomd++;
-  }
-
-  // Progress per topic: percentage 0-100 based on average niveau/5
-  function topicPct(t) {
-    const s = topicStats[t];
-    if (!s || s.count === 0) return 0;
-    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
-  }
-
-  // Level progress: average topic pct for all topics in level
-  function levelPct(topics) {
-    const sum = topics.reduce((a, t) => a + topicPct(t), 0);
-    return Math.round(sum / topics.length);
-  }
-
-  // Level unlocked if previous level has >= 30% progress
-  function isUnlocked(i) {
-    if (i === 0) return true;
-    return levelPct(LEERPAD_LEVELS[i - 1].topics) >= 30;
-  }
-
-  let html = '';
-  for (let i = 0; i < LEERPAD_LEVELS.length; i++) {
-    const lvl = LEERPAD_LEVELS[i];
-    const unlocked = isUnlocked(i);
-    const pct = levelPct(lvl.topics);
-    const completed = pct >= 80;
-    const stateClass = !unlocked ? 'locked' : completed ? 'completed' : '';
-
-    html += `<div class="leerpad-level ${stateClass}">
-      <div class="leerpad-level-header">
-        <div class="leerpad-level-badge">${unlocked ? lvl.emoji : '🔒'}</div>
-        <div style="flex:1">
-          <div class="leerpad-level-naam">${lvl.naam}</div>
-          <div class="leerpad-level-sub">Niveau ${lvl.niveau}</div>
-        </div>
-        ${unlocked ? `<div class="leerpad-level-pct">${pct}%</div>` : ''}
-      </div>
-      ${unlocked ? `<div class="leerpad-progress-bar"><div class="leerpad-progress-fill" style="width:${pct}%"></div></div>` : ''}
-      <div class="leerpad-topics">
-        ${lvl.topics.map(t => {
-          const p = topicPct(t);
-          if (!unlocked) {
-            return `<div class="leerpad-topic leerpad-topic-locked">
-              <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
-              <span class="leerpad-topic-lock">🔒</span>
-            </div>`;
-          }
-          return `<div class="leerpad-topic" onclick="leerpladSelectTopic('${t}')">
-            <span>${TOPIC_ICONS[t] || ''} ${TOPIC_LABELS[t]}</span>
-            <span class="leerpad-topic-pct">${p}%</span>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }
-
-  container.innerHTML = html;
-}
-
-function leerpladSelectTopic(topic) {
-  document.querySelectorAll('#topicList .option-item').forEach(item => {
-    const oc = item.getAttribute('onclick') || '';
-    item.classList.toggle('selected', oc.includes(`'${topic}'`));
-  });
-  selectedTopic = topic;
-  showScreen('setup');
-}
-
-=======
->>>>>>> eff19935b1687b99c0b73b48b7721ee6730ef7d6
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 async function renderDashboard() {
   const data = getProgress();
