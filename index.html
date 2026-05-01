@@ -235,10 +235,12 @@
   .feedback-box.show { display: block; }
   .feedback-box.correct { background: var(--success-dim); border-color: var(--success); }
   .feedback-box.incorrect { background: var(--danger-dim); border-color: var(--danger); }
+  .feedback-box.partial { background: var(--warn-dim); border-color: var(--warn); }
   .feedback-box.loading { background: var(--surface); }
   .feedback-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
   .feedback-box.correct .feedback-title { color: var(--success); }
   .feedback-box.incorrect .feedback-title { color: var(--danger); }
+  .feedback-box.partial .feedback-title { color: var(--warn); }
   .feedback-text { font-size: 14px; line-height: 1.7; color: var(--text); white-space: pre-wrap; }
   .feedback-model { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
   .feedback-model-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
@@ -1358,12 +1360,17 @@ ${answer}
 Model antwoord (intern, gebruik als referentie):
 ${currentQuestion.model_antwoord}
 
+Beoordeel UITSLUITEND of de kandidaat het concept begrijpt en de logica correct is.
+Variabelenamen, spacing, print-formatting en stijlkeuzes tellen NIET mee voor concept_correct.
+Zet alleen_formatting op true als het antwoord inhoudelijk en logisch klopt maar de output-opmaak afwijkt.
+
 Reageer UITSLUITEND met geldig JSON:
 {
-  "correct": true of false,
+  "concept_correct": true of false,
   "score": getal 0-100,
+  "alleen_formatting": true of false,
   "feedback": "2-4 zinnen feedback in het Nederlands: wat ging goed, wat kan beter",
-  "toon_model": true of false (toon modelantwoord alleen als score < 70)
+  "toon_model": true of false
 }`;
 
   try {
@@ -1371,9 +1378,12 @@ Reageer UITSLUITEND met geldig JSON:
     const clean = res.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
 
-    const correct = result.correct || result.score >= 70;
-    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
-    document.getElementById('feedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    const correct = result.concept_correct || result.score >= 60;
+    const partial = !correct && result.alleen_formatting;
+    const stateClass = correct ? 'correct' : partial ? 'partial' : 'incorrect';
+    const stateTitle = correct ? '✓ Goed gedaan!' : partial ? '✓ Concept klopt — kleine outputverschillen' : '✗ Nog niet helemaal';
+    fb.className = 'feedback-box show ' + stateClass;
+    document.getElementById('feedbackTitle').textContent = stateTitle;
     document.getElementById('feedbackText').textContent = result.feedback;
 
     if (result.toon_model || !correct) {
@@ -1392,7 +1402,7 @@ Reageer UITSLUITEND met geldig JSON:
     });
 
     updateHeaderScore();
-    saveProgress(selectedTopic, currentQuestion.vraagtype || '', correct, result.score, currentQuestion.vraag, 'code');
+    saveProgress(selectedTopic, currentQuestion.vraagtype || '', correct || partial, result.score, currentQuestion.vraag, 'code');
     document.getElementById('nextRow').style.display = 'block';
     document.getElementById('followupSection').style.display = 'block';
     document.getElementById('followupAnswer').style.display = 'none';
@@ -1532,10 +1542,15 @@ ${answer}
 Model antwoord (intern):
 ${q.model_antwoord}
 
+Beoordeel UITSLUITEND of de kandidaat het concept begrijpt en de logica correct is.
+Variabelenamen, spacing, print-formatting en stijlkeuzes tellen NIET mee voor concept_correct.
+Zet alleen_formatting op true als het antwoord inhoudelijk en logisch klopt maar de output-opmaak afwijkt.
+
 Reageer UITSLUITEND met geldig JSON:
 {
-  "correct": true of false,
+  "concept_correct": true of false,
   "score": getal 0-100,
+  "alleen_formatting": true of false,
   "feedback": "2-4 zinnen feedback in het Nederlands",
   "toon_model": true of false
 }`;
@@ -1544,10 +1559,12 @@ Reageer UITSLUITEND met geldig JSON:
     const res = await callClaude(prompt, 400);
     const clean = res.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
-    const correct = result.correct || result.score >= 70;
-
-    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
-    document.getElementById('mcCodeFeedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    const correct = result.concept_correct || result.score >= 60;
+    const partial = !correct && result.alleen_formatting;
+    const stateClass = correct ? 'correct' : partial ? 'partial' : 'incorrect';
+    const stateTitle = correct ? '✓ Goed gedaan!' : partial ? '✓ Concept klopt — kleine outputverschillen' : '✗ Nog niet helemaal';
+    fb.className = 'feedback-box show ' + stateClass;
+    document.getElementById('mcCodeFeedbackTitle').textContent = stateTitle;
     document.getElementById('mcCodeFeedbackText').textContent = result.feedback;
 
     if (result.toon_model || !correct) {
@@ -1555,7 +1572,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('mcCodeModelAnswer').textContent = q.model_antwoord;
     }
 
-    saveProgress(selectedTopic, currentMcQuestion?.onderwerp || '', correct, result.score, q.vraag, 'mc-code');
+    saveProgress(selectedTopic, currentMcQuestion?.onderwerp || '', correct || partial, result.score, q.vraag, 'mc-code');
     document.getElementById('mcCodeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -2579,10 +2596,15 @@ ${answer}
 Model antwoord (intern):
 ${currentFollowupPracticeQuestion.model_antwoord}
 
+Beoordeel UITSLUITEND of de kandidaat het concept begrijpt en de logica correct is.
+Variabelenamen, spacing, print-formatting en stijlkeuzes tellen NIET mee voor concept_correct.
+Zet alleen_formatting op true als het antwoord inhoudelijk en logisch klopt maar de output-opmaak afwijkt.
+
 Reageer UITSLUITEND met geldig JSON:
 {
-  "correct": true of false,
+  "concept_correct": true of false,
   "score": getal 0-100,
+  "alleen_formatting": true of false,
   "feedback": "2-4 zinnen feedback in het Nederlands",
   "toon_model": true of false
 }`;
@@ -2591,10 +2613,12 @@ Reageer UITSLUITEND met geldig JSON:
     const res = await callClaude(prompt, 400);
     const clean = res.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
-    const correct = result.correct || result.score >= 70;
-
-    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
-    document.getElementById('followupPracticeFeedbackTitle').textContent = correct ? '✓ Goed gedaan!' : '✗ Nog niet helemaal';
+    const correct = result.concept_correct || result.score >= 60;
+    const partial = !correct && result.alleen_formatting;
+    const stateClass = correct ? 'correct' : partial ? 'partial' : 'incorrect';
+    const stateTitle = correct ? '✓ Goed gedaan!' : partial ? '✓ Concept klopt — kleine outputverschillen' : '✗ Nog niet helemaal';
+    fb.className = 'feedback-box show ' + stateClass;
+    document.getElementById('followupPracticeFeedbackTitle').textContent = stateTitle;
     document.getElementById('followupPracticeFeedbackText').textContent = result.feedback;
 
     if (result.toon_model || !correct) {
@@ -2602,7 +2626,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('followupPracticeModelAnswer').textContent = currentFollowupPracticeQuestion.model_antwoord;
     }
 
-    saveProgress(lastFollowupContext.topic, lastFollowupContext.vraag, correct, result.score, currentFollowupPracticeQuestion.vraag, 'followup');
+    saveProgress(lastFollowupContext.topic, lastFollowupContext.vraag, correct || partial, result.score, currentFollowupPracticeQuestion.vraag, 'followup');
     document.getElementById('followupPracticeNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
@@ -2705,10 +2729,15 @@ ${answer}
 
 Beoordeel op begrip van het patroon en de motivatie voor de keuze versus alternatieven.
 
+Beoordeel UITSLUITEND of de kandidaat het concept begrijpt en de motivatie voor de keuze correct is.
+Variabelenamen en exacte formulering tellen NIET mee voor concept_correct — begrip en redenering wel.
+Zet alleen_formatting op true als de redenering klopt maar de formulering afwijkt van het voorbeeldantwoord.
+
 Reageer UITSLUITEND met geldig JSON:
 {
-  "correct": true of false,
+  "concept_correct": true of false,
   "score": getal 0-100,
+  "alleen_formatting": true of false,
   "feedback": "2-4 zinnen feedback in het Nederlands over het begrip van het patroon en de keuze",
   "toon_model": true of false
 }`;
@@ -2717,10 +2746,12 @@ Reageer UITSLUITEND met geldig JSON:
     const res = await callClaude(prompt, 400);
     const clean = res.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
-    const correct = result.correct || result.score >= 70;
-
-    fb.className = 'feedback-box show ' + (correct ? 'correct' : 'incorrect');
-    document.getElementById('waaromFeedbackTitle').textContent = correct ? '✓ Goed begrip!' : '✗ Niet volledig';
+    const correct = result.concept_correct || result.score >= 60;
+    const partial = !correct && result.alleen_formatting;
+    const stateClass = correct ? 'correct' : partial ? 'partial' : 'incorrect';
+    const stateTitle = correct ? '✓ Goed begrip!' : partial ? '✓ Concept klopt — formulering iets anders' : '✗ Niet volledig';
+    fb.className = 'feedback-box show ' + stateClass;
+    document.getElementById('waaromFeedbackTitle').textContent = stateTitle;
     document.getElementById('waaromFeedbackText').textContent = result.feedback;
 
     document.getElementById('waaromKernpunten').style.display = 'block';
@@ -2732,7 +2763,7 @@ Reageer UITSLUITEND met geldig JSON:
       document.getElementById('waaromVoorbeeldantwoord').textContent = currentWaaromQuestion.voorbeeldantwoord;
     }
 
-    saveProgress(selectedTopic, currentWaaromQuestion.concept, correct, result.score, currentWaaromQuestion.vraag, 'theorie-code');
+    saveProgress(selectedTopic, currentWaaromQuestion.concept, correct || partial, result.score, currentWaaromQuestion.vraag, 'theorie-code');
     document.getElementById('waaromNextRow').style.display = 'block';
   } catch(e) {
     fb.className = 'feedback-box show incorrect';
