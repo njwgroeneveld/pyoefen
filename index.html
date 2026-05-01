@@ -997,12 +997,12 @@ const TOPIC_LABELS = {
 const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️', netwerk: '🔗' };
 
 const LEERPAD_LEVELS = [
-  { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', topics: ['basics'] },
-  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', topics: ['exceptions', 'oop', 'dataclasses'] },
-  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', topics: ['sre', 'regex', 'linux', 'logs', 'netwerk'] },
-  { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', topics: ['asyncio', 'websocket', 'pandas'] },
-  { niveau: 4, naam: 'Reliability',             emoji: '🛡️', topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
-  { niveau: 5, naam: 'ML in productie',         emoji: '📉', topics: ['backtesting'] }
+  { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', label: 'Beginner',  topics: ['basics'] },
+  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', label: 'Beginner',  topics: ['exceptions', 'oop', 'dataclasses'] },
+  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', label: 'Moderate',  topics: ['sre', 'regex', 'linux', 'logs', 'netwerk'] },
+  { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', label: 'Moderate',  topics: ['asyncio', 'websocket', 'pandas'] },
+  { niveau: 4, naam: 'Reliability',             emoji: '🛡️', label: 'Expert',    topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
+  { niveau: 5, naam: 'ML in productie',         emoji: '📉', label: 'Expert',    topics: ['backtesting'] }
 ];
 
 const CUMULATIEVE_CONCEPTEN = {
@@ -2359,7 +2359,7 @@ async function renderLeerpad() {
         <div class="leerpad-level-badge">${unlocked ? lvl.emoji : '🔒'}</div>
         <div style="flex:1">
           <div class="leerpad-level-naam">${lvl.naam}</div>
-          <div class="leerpad-level-sub">Niveau ${lvl.niveau}</div>
+          <div class="leerpad-level-sub">Niveau ${lvl.niveau} · <span style="color:var(--accent);font-weight:600">${lvl.label}</span></div>
         </div>
         ${unlocked ? `<div class="leerpad-level-pct">${pct}%</div>` : ''}
       </div>
