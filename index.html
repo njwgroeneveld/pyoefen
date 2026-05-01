@@ -1005,6 +1005,32 @@ const LEERPAD_LEVELS = [
   { niveau: 5, naam: 'ML in productie',         emoji: '📉', topics: ['backtesting'] }
 ];
 
+const CUMULATIEVE_CONCEPTEN = {
+  0: [],
+  1: ['type hints', 'list comprehensions', 'f-strings', 'generator functies'],
+  2: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
+      'custom exceptions', 'dataclasses', 'OOP patronen'],
+  3: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
+      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics'],
+  4: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
+      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics',
+      'asyncio', 'websocket', 'pandas', 'numpy'],
+  5: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
+      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics',
+      'asyncio', 'websocket', 'pandas', 'numpy',
+      'reliability patterns', 'kubernetes client', 'prometheus queries', 'linux performance analyse']
+};
+
+function getCumulatiefBlok(topic) {
+  const level = LEERPAD_LEVELS.findIndex(lvl => lvl.topics.includes(topic));
+  const concepten = CUMULATIEVE_CONCEPTEN[level] || [];
+  if (concepten.length === 0) return '';
+  return `\nDe kandidaat heeft de volgende concepten al geleerd en moet ze toepassen waar van toepassing: ${concepten.join(', ')}. Geef een lagere score als hij onnodige alternatieven gebruikt — bijv. een for-loop waar een list comprehension hoort, of geen type hints waar ze relevant zijn.\n`;
+}
+
 // ─── TOPIC DATA (globaal — gebruikt door loadNextQuestion en buildSessionPlan) ──
 const topicContexts = {
   regex: 'Python re module: re.match, re.search, re.findall, re.sub, named groups, lookaheads. Context: parsen van trading logs, order ID patronen, exchange feed berichten, trade timestamps, service namen, foutmeldingen uit matching engines.\nGEBRUIK WEL: re.match, re.search, re.findall, re.sub, groups, named groups, flags\nGEBRUIK NIET: asyncio, pandas, klassen',
@@ -1332,6 +1358,7 @@ async function submitAnswer() {
   document.getElementById('hintBtn').disabled = true;
 
   const criteria = currentQuestion.beoordelingscriteria.join('\n- ');
+  const cumulatiefBlok = getCumulatiefBlok(selectedTopic);
   const isLinuxPerfQ = selectedTopic === 'linux_perf';
   const prompt = isLinuxPerfQ
     ? `Beoordeel de Linux performance analyse van een kandidaat die oefent voor een Trading Reliability Engineer rol.
@@ -1363,7 +1390,7 @@ Vraag: ${currentQuestion.vraag}
 
 Beoordelingscriteria:
 - ${criteria}
-
+${cumulatiefBlok}
 Antwoord van kandidaat:
 ${answer}
 
@@ -1540,12 +1567,13 @@ async function mcCodeSubmitAnswer() {
   document.getElementById('mcCodeHintBtn').disabled = true;
 
   const criteria = q.beoordelingscriteria.join('\n- ');
+  const cumulatiefBlok = getCumulatiefBlok(selectedTopic);
   const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
 
 Vraag: ${q.vraag}
 Beoordelingscriteria:
 - ${criteria}
-
+${cumulatiefBlok}
 Antwoord van kandidaat:
 ${answer}
 
@@ -2606,12 +2634,13 @@ async function submitFollowupPractice() {
   document.getElementById('followupPracticeHintBtn').disabled = true;
 
   const criteria = currentFollowupPracticeQuestion.beoordelingscriteria.join('\n- ');
+  const cumulatiefBlok = getCumulatiefBlok(lastFollowupContext.topic);
   const prompt = `Beoordeel het Python antwoord van een kandidaat die oefent voor een Trading Reliability Engineer rol.
 
 Vraag: ${currentFollowupPracticeQuestion.vraag}
 Beoordelingscriteria:
 - ${criteria}
-
+${cumulatiefBlok}
 Antwoord van kandidaat:
 ${answer}
 
@@ -2735,6 +2764,7 @@ async function submitWaaromPatroon() {
   document.getElementById('waaromVoorbeeldModel').style.display = 'none';
   document.getElementById('waaromSubmitBtn').disabled = true;
 
+  const cumulatiefBlok = getCumulatiefBlok(selectedTopic);
   const prompt = `Beoordeel het antwoord van een kandidaat op een theoretische waarom-vraag.
 
 Concept: ${currentWaaromQuestion.concept}
@@ -2745,7 +2775,7 @@ ${currentWaaromQuestion.kernpunten.map((k, i) => `${i + 1}. ${k}`).join('\n')}
 
 Voorbeeldantwoord (intern):
 ${currentWaaromQuestion.voorbeeldantwoord}
-
+${cumulatiefBlok}
 Antwoord van de kandidaat:
 ${answer}
 
