@@ -561,6 +561,13 @@
                 <div class="option-sub">retry, circuit breaker, graceful shutdown</div>
               </div>
             </label>
+            <label class="option-item" onclick="selectTopic(this,'netwerk')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Netwerk & TCP/IP</div>
+                <div class="option-sub">sockets, health checks, TCP diagnostics</div>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -984,14 +991,15 @@ const TOPIC_LABELS = {
   backtesting: 'Backtesten & tijdreeksen',
   linux_perf: 'Linux performance',
   logs: 'Log analyse',
-  reliability: 'Reliability patterns'
+  reliability: 'Reliability patterns',
+  netwerk: 'Netwerk & TCP/IP'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️' };
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️', netwerk: '🔗' };
 
 const LEERPAD_LEVELS = [
   { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', topics: ['basics'] },
   { niveau: 1, naam: 'Structuur',               emoji: '🏗️', topics: ['exceptions', 'oop', 'dataclasses'] },
-  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', topics: ['sre', 'regex', 'linux', 'logs'] },
+  { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', topics: ['sre', 'regex', 'linux', 'logs', 'netwerk'] },
   { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', topics: ['asyncio', 'websocket', 'pandas'] },
   { niveau: 4, naam: 'Reliability',             emoji: '🛡️', topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
   { niveau: 5, naam: 'ML in productie',         emoji: '📉', topics: ['backtesting'] }
@@ -1014,7 +1022,8 @@ const topicContexts = {
   backtesting: 'Backtesten en tijdreeksanalyse in Python: OHLCV data verwerken met Pandas, rolling window berekeningen (rolling().mean()/std()), momentum signalen, positiebeheer in een backtest loop, slippage en transactiekosten modelleren, performance metrics (Sharpe ratio, max drawdown, win rate). Context: eenvoudige backtests van trading strategieën op historische exchange data.\nGEBRUIK WEL: alles inclusief pandas, numpy, scikit-learn, feature engineering, backtesten\nGEBRUIK NIET: niets verboden',
   linux_perf: 'Linux performance analyse: lezen en interpreteren van output van top, htop, vmstat, iostat, sar, ss, free, dmesg, perf stat. GEEN code schrijven — de kandidaat krijgt realistische terminal output en moet analyseren wat er aan de hand is, wat de bottleneck is, en wat de volgende stap zou zijn. Context: troubleshooting van performance problemen in trading systemen, CPU throttling, memory pressure, netwerk congestie, disk I/O bottlenecks.\nGEBRUIK WEL: output interpreteren van top/vmstat/iostat/ss/free, diagnose workflow beschrijven\nGEBRUIK NIET: ML, scikit-learn, pandas',
   logs: 'Log analyse voor een Trading Reliability Engineer: logregels parsen met Python en regex, grep/awk/sed aanroepen via subprocess, journalctl en kubectl logs gebruiken, ERROR patronen detecteren in trading systeem logs zoals trader.py en exchange.py, tijdstempels vergelijken, anomalieën vinden in hoge volumes aan logberichten.\nGEBRUIK WEL: regex voor log parsing, subprocess met grep, open() voor bestanden, journalctl via subprocess\nGEBRUIK NIET: asyncio, pandas, ML',
-  reliability: 'Reliability patterns voor een Trading Reliability Engineer: retry logic met exponential backoff, circuit breaker patroon, dead man\'s switch, graceful shutdown, health checks, timeout afhandeling, fallback strategieën, rate limiting, bulkhead patroon. Alles in de context van trading systemen zoals exchange connecties, order routers en marktdata feeds.\nGEBRUIK WEL: retry, exponential backoff, circuit breaker, timeout, graceful shutdown, health checks\nGEBRUIK NIET: ML, scikit-learn'
+  reliability: 'Reliability patterns voor een Trading Reliability Engineer: retry logic met exponential backoff, circuit breaker patroon, dead man\'s switch, graceful shutdown, health checks, timeout afhandeling, fallback strategieën, rate limiting, bulkhead patroon. Alles in de context van trading systemen zoals exchange connecties, order routers en marktdata feeds.\nGEBRUIK WEL: retry, exponential backoff, circuit breaker, timeout, graceful shutdown, health checks\nGEBRUIK NIET: ML, scikit-learn',
+  netwerk: 'Python netwerk programmering en TCP/IP basiskennis: socket module, TCP verbindingen opzetten en monitoren, health checks schrijven, connection timeouts instellen, socket states herkennen (TIME_WAIT, CLOSE_WAIT), UDP vs TCP in trading context, netwerk-problemen diagnosticeren vanuit Python (latency meten, connectiviteit testen, poort beschikbaarheid checken). Context: trading systemen die verbinding maken met exchanges via TCP, health check scripts voor exchange connectors.\nGEBRUIK WEL: socket, asyncio TCP clients, subprocess met ss/netstat, time.perf_counter voor latency\nGEBRUIK NIET: websockets library, pandas, ML'
 };
 
 const topicVraagtypen = {
@@ -1033,7 +1042,8 @@ const topicVraagtypen = {
   backtesting: ['OHLCV data laden en inspecteren', 'rolling moving average berekenen', 'momentum signaal genereren', 'positie bijhouden in backtest loop', 'transactiekosten verrekenen', 'Sharpe ratio berekenen', 'max drawdown berekenen', 'win rate en profit factor', 'equity curve berekenen', 'out-of-sample test splitsen'],
   linux_perf: ['top output interpreteren: CPU steal vs wait', 'vmstat output interpreteren: swapping detecteren', 'iostat output interpreteren: disk saturation', 'ss output interpreteren: TIME_WAIT storm', 'free output interpreteren: memory pressure', 'load average interpreteren: overloaded systeem', 'CPU throttling detecteren in top/cgroups', 'network buffer backpressure herkennen', 'OOM killer activiteit in dmesg herkennen', 'perf stat output voor context switches interpreteren'],
   logs: ['logregels parsen met regex', 'grep en awk vanuit Python aanroepen via subprocess', 'journalctl filters gebruiken', 'Kubernetes pod logs ophalen met kubectl', 'structured vs unstructured logs herkennen', 'ERROR en WARN patronen detecteren in trading logs', 'tijdstempels extraheren uit logregels', 'stacktraces parsen uit logbestanden', 'anomalieën detecteren in grote logbestanden', 'meerdere logbestanden combineren en vergelijken'],
-  reliability: ['retry met exponential backoff schrijven', 'circuit breaker implementeren', 'dead man\'s switch bouwen', 'graceful shutdown afhandelen', 'health check endpoint maken', 'timeout correct instellen', 'fallback strategie implementeren', 'rate limiter schrijven', 'bulkhead patroon toepassen', 'verbindingsfout detecteren en herstellen']
+  reliability: ['retry met exponential backoff schrijven', 'circuit breaker implementeren', 'dead man\'s switch bouwen', 'graceful shutdown afhandelen', 'health check endpoint maken', 'timeout correct instellen', 'fallback strategie implementeren', 'rate limiter schrijven', 'bulkhead patroon toepassen', 'verbindingsfout detecteren en herstellen'],
+  netwerk: ['TCP health check schrijven met socket', 'connection timeout instellen en afhandelen', 'TCP vs UDP kiezen voor trading berichten', 'socket state detecteren met ss via subprocess', 'latency meten tussen twee hosts', 'poort beschikbaarheid controleren', 'reconnect logica voor TCP verbinding', 'meerdere hosts parallel pingen', 'TIME_WAIT storm herkennen en verklaren', 'netwerk partitie simuleren en detecteren']
 };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -1795,6 +1805,18 @@ const mcOnderwerpenPerTopic = {
     'Hoe voorkom je een retry storm',
     'Wat is jitter in retry logic',
     'Verschil tussen timeout en deadline'
+  ],
+  netwerk: [
+    'TCP vs UDP: wanneer gebruik je welke in een trading systeem',
+    'Wat is een socket en hoe gebruik je hem in Python',
+    'Connection timeout vs read timeout: verschil en instelling',
+    'Wat betekent TIME_WAIT en wanneer is het een probleem',
+    'Hoe schrijf je een TCP health check in Python',
+    'Verschil tussen blocking en non-blocking sockets',
+    'Wat is de rol van het socket backlog parameter',
+    'Hoe herken je een netwerk partitie in je applicatie',
+    'Waarom gebruik je asyncio voor TCP verbindingen in trading',
+    'Hoe meet je end-to-end netwerk latency vanuit Python'
   ]
 };
 
