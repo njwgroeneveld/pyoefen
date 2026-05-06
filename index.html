@@ -2164,10 +2164,12 @@ async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
           }
         }
 
+        const patchData = { streak: nieuweStreak, niveau: nieuwNiveau, laatste_gezien: now.toISOString(), volgende_herhaling: volgendeHerhaling, doorgestroomd };
+        if (correct && !rec.eerste_correct) patchData.eerste_correct = now.toISOString();
         await sbFetch(
           `/rest/v1/concept_niveau?onderwerp=eq.${encodeURIComponent(topic)}&subonderwerp=eq.${encodeURIComponent(subonderwerp)}`,
           'PATCH',
-          { streak: nieuweStreak, niveau: nieuwNiveau, laatste_gezien: now.toISOString(), volgende_herhaling: volgendeHerhaling, doorgestroomd }
+          patchData
         );
       } else {
         // Nieuw record
@@ -2245,21 +2247,24 @@ let _aanbevolenTopic = null;
 async function renderAanbevolen() {
   let niveauData = [];
   try {
-    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,niveau');
+    niveauData = await sbFetch('/rest/v1/concept_niveau?select=onderwerp,niveau,streak');
   } catch(e) { return; }
 
   // Aggregate per topic
   const topicStats = {};
   for (const row of niveauData) {
-    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0 };
+    if (!topicStats[row.onderwerp]) topicStats[row.onderwerp] = { sum: 0, count: 0, streakSum: 0 };
     topicStats[row.onderwerp].sum += (row.niveau || 0);
     topicStats[row.onderwerp].count++;
+    topicStats[row.onderwerp].streakSum += Math.min(row.streak || 0, 3);
   }
 
   function topicPct(t) {
     const s = topicStats[t];
     if (!s || s.count === 0) return 0;
-    return Math.min(100, Math.round((s.sum / (s.count * 5)) * 100));
+    const streakPct = Math.round((s.streakSum / (s.count * 3)) * 60);
+    const niveauPct = Math.round((s.sum / (s.count * 5)) * 40);
+    return Math.min(100, streakPct + niveauPct);
   }
   function levelPct(topics) {
     return Math.round(topics.reduce((a, t) => a + topicPct(t), 0) / topics.length);
