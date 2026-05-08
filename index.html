@@ -2147,7 +2147,7 @@ async function saveProgress(topic, subonderwerp, correct, score, vraag, modus) {
 
       if (niveauRecs.length > 0) {
         const rec = niveauRecs[0];
-        const nieuweStreak = correct ? rec.streak + 1 : 0;
+        const nieuweStreak = correct ? rec.streak + 1 : Math.max(0, rec.streak - 1);
         const dagen = spacedDagen(nieuweStreak);
         const volgendeHerhaling = correct
           ? new Date(now.getTime() + dagen * 86400000).toISOString()
