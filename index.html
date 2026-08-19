@@ -568,6 +568,13 @@
                 <div class="option-sub">sockets, health checks, TCP diagnostics</div>
               </div>
             </label>
+            <label class="option-item" onclick="selectTopic(this,'testing')">
+              <div class="option-dot"></div>
+              <div>
+                <div class="option-label">Testing (pytest)</div>
+                <div class="option-sub">fixtures, mocking, parametrize</div>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -992,13 +999,14 @@ const TOPIC_LABELS = {
   linux_perf: 'Linux performance',
   logs: 'Log analyse',
   reliability: 'Reliability patterns',
-  netwerk: 'Netwerk & TCP/IP'
+  netwerk: 'Netwerk & TCP/IP',
+  testing: 'Testing (pytest)'
 };
-const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️', netwerk: '🔗' };
+const TOPIC_ICONS = { regex: '🔍', pandas: '📊', sre: '⚙️', kubernetes: '☸️', oop: '🧱', basics: '🐍', linux: '🐧', prometheus: '📈', asyncio: '🔌', websocket: '🌐', dataclasses: '📦', exceptions: '⚠️', backtesting: '📉', linux_perf: '🖥️', logs: '📋', reliability: '🛡️', netwerk: '🔗', testing: '🧪' };
 
 const LEERPAD_LEVELS = [
   { niveau: 0, naam: 'Bouwstenen',              emoji: '🐍', label: 'Beginner',  topics: ['basics'] },
-  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', label: 'Beginner',  topics: ['exceptions', 'oop', 'dataclasses'] },
+  { niveau: 1, naam: 'Structuur',               emoji: '🏗️', label: 'Beginner',  topics: ['exceptions', 'oop', 'dataclasses', 'testing'] },
   { niveau: 2, naam: 'Buitenwereld & logs',     emoji: '🌍', label: 'Moderate',  topics: ['sre', 'regex', 'linux', 'logs', 'netwerk'] },
   { niveau: 3, naam: 'Gelijktijdigheid & data', emoji: '🔄', label: 'Moderate',  topics: ['asyncio', 'websocket', 'pandas'] },
   { niveau: 4, naam: 'Reliability',             emoji: '🛡️', label: 'Expert',    topics: ['reliability', 'kubernetes', 'prometheus', 'linux_perf'] },
@@ -1009,16 +1017,16 @@ const CUMULATIEVE_CONCEPTEN = {
   0: [],
   1: ['type hints', 'list comprehensions', 'f-strings', 'generator functies'],
   2: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
-      'custom exceptions', 'dataclasses', 'OOP patronen'],
+      'custom exceptions', 'dataclasses', 'OOP patronen', 'pytest testing'],
   3: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
-      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'custom exceptions', 'dataclasses', 'OOP patronen', 'pytest testing',
       'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics'],
   4: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
-      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'custom exceptions', 'dataclasses', 'OOP patronen', 'pytest testing',
       'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics',
       'asyncio', 'websocket', 'pandas', 'numpy'],
   5: ['type hints', 'list comprehensions', 'f-strings', 'generator functies',
-      'custom exceptions', 'dataclasses', 'OOP patronen',
+      'custom exceptions', 'dataclasses', 'OOP patronen', 'pytest testing',
       'subprocess', 'regex', 'logging', 'context managers', 'TCP socket basics',
       'asyncio', 'websocket', 'pandas', 'numpy',
       'reliability patterns', 'kubernetes client', 'prometheus queries', 'linux performance analyse']
@@ -1049,7 +1057,8 @@ const topicContexts = {
   linux_perf: 'Linux performance analyse: lezen en interpreteren van output van top, htop, vmstat, iostat, sar, ss, free, dmesg, perf stat. GEEN code schrijven — de kandidaat krijgt realistische terminal output en moet analyseren wat er aan de hand is, wat de bottleneck is, en wat de volgende stap zou zijn. Context: troubleshooting van performance problemen in trading systemen, CPU throttling, memory pressure, netwerk congestie, disk I/O bottlenecks.\nGEBRUIK WEL: output interpreteren van top/vmstat/iostat/ss/free, diagnose workflow beschrijven\nGEBRUIK NIET: ML, scikit-learn, pandas',
   logs: 'Log analyse voor een Trading Reliability Engineer: logregels parsen met Python en regex, grep/awk/sed aanroepen via subprocess, journalctl en kubectl logs gebruiken, ERROR patronen detecteren in trading systeem logs zoals trader.py en exchange.py, tijdstempels vergelijken, anomalieën vinden in hoge volumes aan logberichten.\nGEBRUIK WEL: regex voor log parsing, subprocess met grep, open() voor bestanden, journalctl via subprocess\nGEBRUIK NIET: asyncio, pandas, ML',
   reliability: 'Reliability patterns voor een Trading Reliability Engineer: retry logic met exponential backoff, circuit breaker patroon, dead man\'s switch, graceful shutdown, health checks, timeout afhandeling, fallback strategieën, rate limiting, bulkhead patroon. Alles in de context van trading systemen zoals exchange connecties, order routers en marktdata feeds.\nGEBRUIK WEL: retry, exponential backoff, circuit breaker, timeout, graceful shutdown, health checks\nGEBRUIK NIET: ML, scikit-learn',
-  netwerk: 'Python netwerk programmering en TCP/IP basiskennis: socket module, TCP verbindingen opzetten en monitoren, health checks schrijven, connection timeouts instellen, socket states herkennen (TIME_WAIT, CLOSE_WAIT), UDP vs TCP in trading context, netwerk-problemen diagnosticeren vanuit Python (latency meten, connectiviteit testen, poort beschikbaarheid checken). Context: trading systemen die verbinding maken met exchanges via TCP, health check scripts voor exchange connectors.\nGEBRUIK WEL: socket, asyncio TCP clients, subprocess met ss/netstat, time.perf_counter voor latency\nGEBRUIK NIET: websockets library, pandas, ML'
+  netwerk: 'Python netwerk programmering en TCP/IP basiskennis: socket module, TCP verbindingen opzetten en monitoren, health checks schrijven, connection timeouts instellen, socket states herkennen (TIME_WAIT, CLOSE_WAIT), UDP vs TCP in trading context, netwerk-problemen diagnosticeren vanuit Python (latency meten, connectiviteit testen, poort beschikbaarheid checken). Context: trading systemen die verbinding maken met exchanges via TCP, health check scripts voor exchange connectors.\nGEBRUIK WEL: socket, asyncio TCP clients, subprocess met ss/netstat, time.perf_counter voor latency\nGEBRUIK NIET: websockets library, pandas, ML',
+  testing: 'Python testen met pytest en unittest.mock: test functies met assert, fixtures (inclusief scope en yield voor setup/teardown), parametrize voor meerdere testcases, pytest.raises voor exception testing, mock.patch en MagicMock voor externe dependencies, monkeypatch voor environment variables en functies, test isolatie. Context: unit- en integratietests schrijven voor trading componenten zoals order validatie, retry logic, exchange connectors en position management, zonder echte netwerkcalls te doen.\nGEBRUIK WEL: pytest, assert, fixtures, parametrize, unittest.mock, patch, MagicMock, monkeypatch, pytest.raises\nGEBRUIK NIET: asyncio, echte netwerkcalls, pandas, ML'
 };
 
 const topicVraagtypen = {
@@ -1069,7 +1078,8 @@ const topicVraagtypen = {
   linux_perf: ['top output interpreteren: CPU steal vs wait', 'vmstat output interpreteren: swapping detecteren', 'iostat output interpreteren: disk saturation', 'ss output interpreteren: TIME_WAIT storm', 'free output interpreteren: memory pressure', 'load average interpreteren: overloaded systeem', 'CPU throttling detecteren in top/cgroups', 'network buffer backpressure herkennen', 'OOM killer activiteit in dmesg herkennen', 'perf stat output voor context switches interpreteren'],
   logs: ['logregels parsen met regex', 'grep en awk vanuit Python aanroepen via subprocess', 'journalctl filters gebruiken', 'Kubernetes pod logs ophalen met kubectl', 'structured vs unstructured logs herkennen', 'ERROR en WARN patronen detecteren in trading logs', 'tijdstempels extraheren uit logregels', 'stacktraces parsen uit logbestanden', 'anomalieën detecteren in grote logbestanden', 'meerdere logbestanden combineren en vergelijken'],
   reliability: ['retry met exponential backoff schrijven', 'circuit breaker implementeren', 'dead man\'s switch bouwen', 'graceful shutdown afhandelen', 'health check endpoint maken', 'timeout correct instellen', 'fallback strategie implementeren', 'rate limiter schrijven', 'bulkhead patroon toepassen', 'verbindingsfout detecteren en herstellen'],
-  netwerk: ['TCP health check schrijven met socket', 'connection timeout instellen en afhandelen', 'TCP vs UDP kiezen voor trading berichten', 'socket state detecteren met ss via subprocess', 'latency meten tussen twee hosts', 'poort beschikbaarheid controleren', 'reconnect logica voor TCP verbinding', 'meerdere hosts parallel pingen', 'TIME_WAIT storm herkennen en verklaren', 'netwerk partitie simuleren en detecteren']
+  netwerk: ['TCP health check schrijven met socket', 'connection timeout instellen en afhandelen', 'TCP vs UDP kiezen voor trading berichten', 'socket state detecteren met ss via subprocess', 'latency meten tussen twee hosts', 'poort beschikbaarheid controleren', 'reconnect logica voor TCP verbinding', 'meerdere hosts parallel pingen', 'TIME_WAIT storm herkennen en verklaren', 'netwerk partitie simuleren en detecteren'],
+  testing: ['test functie schrijven met assert', 'pytest fixture gebruiken', 'parametrize voor meerdere testcases', 'exception testen met pytest.raises', 'mock.patch voor externe dependency', 'monkeypatch voor environment variable', 'MagicMock configureren en side_effect gebruiken', 'fixture met setup/teardown via yield', 'retry logic testen met mock', 'test isolatie en gedeelde state vermijden']
 };
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -1845,6 +1855,18 @@ const mcOnderwerpenPerTopic = {
     'Hoe herken je een netwerk partitie in je applicatie',
     'Waarom gebruik je asyncio voor TCP verbindingen in trading',
     'Hoe meet je end-to-end netwerk latency vanuit Python'
+  ],
+  testing: [
+    'Verschil tussen assert en pytest.raises',
+    'Wat een fixture is en hoe scope werkt (function/module/session)',
+    'parametrize voor meerdere testcases in één test',
+    'Mock vs MagicMock vs patch',
+    'monkeypatch voor environment variables of functies',
+    'Verschil tussen unittest en pytest',
+    'Waarom test isolatie belangrijk is en gedeelde state gevaarlijk is',
+    'Wat mocken van subprocess of requests oplevert',
+    'setup/teardown met yield fixtures',
+    'Wat testcoverage wel en niet garandeert'
   ]
 };
 
